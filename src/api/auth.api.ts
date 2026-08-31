@@ -31,7 +31,12 @@ async function register(credentials: RegisterCredentials): Promise<AuthResponse>
 
     mockUsersDb.push(newUser);
 
-    const { password: _password, ...user } = newUser;
+   const user: User = {
+   id: newUser.id,
+   email: newUser.email,
+   name: newUser.name,
+   createdAt: newUser.createdAt,
+};
     return { user, token: generateMockToken(user.id) };
 }
 
@@ -46,7 +51,12 @@ async function login(credentials: LoginCredentials): Promise<AuthResponse> {
     throw new Error('Email o contraseña incorrectos');
     }
 
-    const { password: _password, ...user } = found;
+    const user: User = {
+   id: found.id,
+   email: found.email,
+   name: found.name,
+   createdAt: found.createdAt,
+};
     return { user, token: generateMockToken(user.id) };
 }
 

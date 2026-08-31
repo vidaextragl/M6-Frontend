@@ -16,7 +16,13 @@ function getInitialSession(): Session {
   const storedUser = localStorage.getItem(USER_STORAGE_KEY);
 
   if (storedToken && storedUser) {
-    return { user: JSON.parse(storedUser) as User, token: storedToken };
+    try {
+      return { user: JSON.parse(storedUser) as User, token: storedToken };
+    } catch {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      localStorage.removeItem(USER_STORAGE_KEY);
+      return { user: null, token: null };
+    }
   }
 
   return { user: null, token: null };

@@ -1,22 +1,12 @@
+import type { ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from '../context/auth-context';
-import { useAuth } from '../hooks/use-auth';
-import { LoginPage } from '../pages/login-page';
-import { RegisterPage } from '../pages/register-page';
+import { DashboardPage, LoginPage, RegisterPage } from '../pages';
+import { WorkspacePage } from '../pages/workspace-page';
 import { ProtectedRoute } from './protected-route';
 
-function DashboardPlaceholder() {
-  const { user, logout } = useAuth();
-
-  return (
-    <div>
-      <h1>Dashboard (próximamente)</h1>
-      <p>Hola, {user?.name}</p>
-      <button type="button" onClick={logout}>
-        Cerrar sesión
-      </button>
-    </div>
-  );
+function PrivatePage({ children }: { children: ReactNode }) {
+  return <ProtectedRoute>{children}</ProtectedRoute>;
 }
 
 export function AppRouter() {
@@ -30,13 +20,68 @@ export function AppRouter() {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
-                <DashboardPlaceholder />
-              </ProtectedRoute>
+              <PrivatePage>
+                <DashboardPage />
+              </PrivatePage>
+            }
+          />
+
+          <Route
+            path="/wallet"
+            element={
+              <PrivatePage>
+                <WorkspacePage type="wallet" />
+              </PrivatePage>
+            }
+          />
+
+          <Route
+            path="/exchange"
+            element={
+              <PrivatePage>
+                <WorkspacePage type="exchange" />
+              </PrivatePage>
+            }
+          />
+
+          <Route
+            path="/cashback"
+            element={
+              <PrivatePage>
+                <WorkspacePage type="cashback" />
+              </PrivatePage>
+            }
+          />
+
+          <Route
+            path="/rewards"
+            element={
+              <PrivatePage>
+                <WorkspacePage type="rewards" />
+              </PrivatePage>
+            }
+          />
+
+          <Route
+            path="/drops"
+            element={
+              <PrivatePage>
+                <WorkspacePage type="drops" />
+              </PrivatePage>
+            }
+          />
+
+          <Route
+            path="/transactions"
+            element={
+              <PrivatePage>
+                <WorkspacePage type="transactions" />
+              </PrivatePage>
             }
           />
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

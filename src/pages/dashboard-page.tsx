@@ -1,3 +1,4 @@
+import { DashboardSkeleton } from '../components/ui/skeleton-loader';
 import { useEffect, useState } from 'react';
 import { walletsApi } from '../api';
 import { PageLayout } from '../components/layout/page-layout';
@@ -75,13 +76,13 @@ export function DashboardPage() {
         ? 'Good afternoon'
         : 'Good evening';
 
-  if (!wallet || !cashback) {
-    return (
-      <PageLayout>
-        <div className="loading-screen">Loading dashboard...</div>
-      </PageLayout>
-    );
-  }
+ if (!wallet || !cashback) {
+  return (
+    <PageLayout>
+      <DashboardSkeleton />
+    </PageLayout>
+  );
+}
 
   return (
     <PageLayout>

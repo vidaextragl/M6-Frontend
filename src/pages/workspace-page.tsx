@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';  
+import { WorkspaceSkeleton } from '../components/ui/skeleton-loader';
 import { PageLayout } from '../components/layout/page-layout';
 import './dashboard-page.css';
 
@@ -31,6 +33,25 @@ const transactions = [
 ];
 
 export function WorkspacePage({ type }: WorkspacePageProps) {
+    const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+
+    const timer = window.setTimeout(() => {
+      setLoading(false);
+    }, 600);
+
+    return () => window.clearTimeout(timer);
+  }, [type]);
+
+  if (loading) {
+    return (
+      <PageLayout>
+        <WorkspaceSkeleton />
+      </PageLayout>
+    );
+  }
   return (
     <PageLayout>
       {type === 'wallet' && <WalletContent />}

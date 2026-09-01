@@ -42,10 +42,17 @@ export function BalanceCard({
             <span> USD</span>
           </h2>
 
-          <p className="positive-text">
-            ↗ +{monthlyChangePercentage}%{' '}
-            <span className="muted-text">this month</span>
-          </p>
+          <p
+  className={
+    monthlyChangePercentage >= 0
+      ? 'positive-text'
+      : 'negative-text'
+  }
+>
+  {monthlyChangePercentage >= 0 ? '↗ +' : '↘ '}
+  {monthlyChangePercentage}%{' '}
+  <span className="muted-text">this month</span>
+</p>
         </div>
 
         <button type="button" className="dots-button">

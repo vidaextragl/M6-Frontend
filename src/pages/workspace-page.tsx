@@ -33,25 +33,23 @@ const transactions = [
 ];
 
 export function WorkspacePage({ type }: WorkspacePageProps) {
-    const [loading, setLoading] = useState(true);
+   const [loadedType, setLoadedType] = useState<WorkspaceType | null>(null);
 
-  useEffect(() => {
-    setLoading(true);
+useEffect(() => {
+  const timer = window.setTimeout(() => {
+    setLoadedType(type);
+  }, 600);
 
-    const timer = window.setTimeout(() => {
-      setLoading(false);
-    }, 600);
+  return () => window.clearTimeout(timer);
+}, [type]);
 
-    return () => window.clearTimeout(timer);
-  }, [type]);
-
-  if (loading) {
-    return (
-      <PageLayout>
-        <WorkspaceSkeleton />
-      </PageLayout>
-    );
-  }
+if (loadedType !== type) {
+  return (
+    <PageLayout>
+      <WorkspaceSkeleton />
+    </PageLayout>
+  );
+}
   return (
     <PageLayout>
       {type === 'wallet' && <WalletContent />}

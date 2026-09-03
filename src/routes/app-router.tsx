@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from '../context/auth-context';
-import { DashboardPage, LoginPage, RegisterPage } from '../pages';
+import { DashboardPage, LoginPage, RegisterPage, TermsPage, PrivacyPage } from '../pages';
 import { WorkspacePage } from '../pages/workspace-page';
 import { ProtectedRoute } from './protected-route';
 
@@ -16,6 +16,8 @@ export function AppRouter() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
 
           <Route
             path="/dashboard"

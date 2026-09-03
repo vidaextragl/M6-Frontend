@@ -1,6 +1,7 @@
 import { useState, type SyntheticEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/use-auth'
+import { isStrongPassword } from '../utils/validators.utils'
 
 const invaders = [
   { top: '12%', color: '#70e6b6', scale: 1, duration: '25s', delay: '0s' },
@@ -31,6 +32,37 @@ function CoinMark({ gradientId }: { gradientId: string }) {
   )
 }
 
+function EyeIcon({ open }: { open: boolean }) {
+  if (open) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="#99a2ad" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+        <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a20.3 20.3 0 0 1-3.22 4.36M14.12 14.12a3 3 0 1 1-4.24-4.24"></path>
+        <line x1="1" y1="1" x2="23" y2="23"></line>
+      </svg>
+    )
+  }
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="#99a2ad" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    </svg>
+  )
+}
+
+interface PasswordRequirement {
+  label: string
+  met: boolean
+}
+
+function getPasswordRequirements(password: string): PasswordRequirement[] {
+  return [
+    { label: 'Al menos 8 caracteres', met: password.length >= 8 },
+    { label: 'Al menos una mayúscula', met: /[A-Z]/.test(password) },
+    { label: 'Al menos un número', met: /[0-9]/.test(password) },
+    { label: 'Al menos un carácter especial', met: /[!@#$%^&*(),.?":{}|<>_\-+=]/.test(password) },
+  ]
+}
+
 export function RegisterPage() {
   const { register } = useAuth()
   const navigate = useNavigate()
@@ -38,14 +70,23 @@ export function RegisterPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const passwordRequirements = getPasswordRequirements(password)
+
   async function handleSubmit(event: SyntheticEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault()
     setError(null)
+
+    if (!isStrongPassword(password)) {
+      setError('La contraseña no cumple los requisitos')
+      return
+    }
 
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden')
@@ -137,28 +178,59 @@ export function RegisterPage() {
 
               <div className="auth-field">
                 <label htmlFor="password">Contraseña</label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  autoComplete="new-password"
-                />
+                <div className="password-input-wrap">
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={8}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  >
+                    <EyeIcon open={showPassword} />
+                  </button>
+                </div>
+
+                {password.length > 0 && (
+                  <ul className="password-requirements">
+                    {passwordRequirements.map((req) => (
+                      <li key={req.label} className={req.met ? 'met' : ''}>
+                        <span className="req-icon">{req.met ? '✓' : ''}</span>
+                        {req.label}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               <div className="auth-field">
                 <label htmlFor="confirmPassword">Confirmar contraseña</label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  autoComplete="new-password"
-                />
+                <div className="password-input-wrap">
+                  <input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={8}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  >
+                    <EyeIcon open={showConfirmPassword} />
+                  </button>
+                </div>
               </div>
 
               <div className="auth-checkbox-field">
@@ -169,7 +241,7 @@ export function RegisterPage() {
                   onChange={(e) => setAcceptedTerms(e.target.checked)}
                 />
                 <label htmlFor="terms">
-                  Acepto los <a href="#">términos y condiciones</a> y la <a href="#">política de privacidad</a>.
+                  Acepto los <Link to="/terms" target="_blank" rel="noopener noreferrer">términos y condiciones</Link> y la <Link to="/privacy" target="_blank" rel="noopener noreferrer">política de privacidad</Link>.
                 </label>
               </div>
 

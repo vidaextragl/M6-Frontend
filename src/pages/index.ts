@@ -1,3 +1,6 @@
-export { LoginPage } from './login-page';
-export { RegisterPage } from './register-page';
-export { DashboardPage } from './dashboard-page';
+export { DashboardPage } from './dashboard-page'
+export { LoginPage } from './login-page'
+export { PrivacyPage } from './privacy-page'
+export { RegisterPage } from './register-page'
+export { TermsPage } from './terms-page'
+export { WorkspacePage } from './workspace-page'

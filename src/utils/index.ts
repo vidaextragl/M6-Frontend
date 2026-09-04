@@ -1,0 +1,1 @@
+export { isStrongPassword } from './validators.utils'

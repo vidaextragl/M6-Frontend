@@ -6,16 +6,14 @@ import {
   Routes,
 } from 'react-router-dom';
 import { AuthProvider } from '../context/auth-context';
-import { DashboardPage, LoginPage, RegisterPage } from '../pages';
+import { DashboardPage, LoginPage, RegisterPage, TermsPage, PrivacyPage } from '../pages';
 import { NotificationsPage } from '../pages/notifications-page';
 import { SettingsPage } from '../pages/settings-page';
 import { WorkspacePage } from '../pages/workspace-page';
 import { ProtectedRoute } from './protected-route';
-
 function PrivatePage({ children }: { children: ReactNode }) {
   return <ProtectedRoute>{children}</ProtectedRoute>;
 }
-
 export function AppRouter() {
   return (
     <BrowserRouter>
@@ -23,7 +21,8 @@ export function AppRouter() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
           <Route
             path="/dashboard"
             element={
@@ -32,7 +31,6 @@ export function AppRouter() {
               </PrivatePage>
             }
           />
-
           <Route
             path="/wallet"
             element={
@@ -41,7 +39,6 @@ export function AppRouter() {
               </PrivatePage>
             }
           />
-
           <Route
             path="/exchange"
             element={
@@ -50,7 +47,6 @@ export function AppRouter() {
               </PrivatePage>
             }
           />
-
           <Route
             path="/cashback"
             element={
@@ -59,7 +55,6 @@ export function AppRouter() {
               </PrivatePage>
             }
           />
-
           <Route
             path="/rewards"
             element={
@@ -68,7 +63,6 @@ export function AppRouter() {
               </PrivatePage>
             }
           />
-
           <Route
             path="/drops"
             element={
@@ -77,7 +71,6 @@ export function AppRouter() {
               </PrivatePage>
             }
           />
-
           <Route
             path="/transactions"
             element={
@@ -86,7 +79,6 @@ export function AppRouter() {
               </PrivatePage>
             }
           />
-
           <Route
             path="/notifications"
             element={
@@ -95,7 +87,6 @@ export function AppRouter() {
               </PrivatePage>
             }
           />
-
           <Route
             path="/settings"
             element={
@@ -104,7 +95,6 @@ export function AppRouter() {
               </PrivatePage>
             }
           />
-
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

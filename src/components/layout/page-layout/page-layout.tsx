@@ -1,11 +1,21 @@
-import { useEffect, useState, type ReactNode } from 'react';
-import { NavLink } from 'react-router-dom';
+import {
+  useEffect,
+  useState,
+  type ReactNode,
+} from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { RouteSkeleton } from '../../ui/route-skeleton/route-skeleton';
 import { Navbar } from '../navbar';
 import { Sidebar } from '../sidebar';
 import '../../../styles/mobile-responsive.css';
 
 interface PageLayoutProps {
   children: ReactNode;
+}
+
+interface RouteContentProps {
+  children: ReactNode;
+  pathname: string;
 }
 
 const mobileItems = [
@@ -16,7 +26,26 @@ const mobileItems = [
   { icon: '☆', label: 'Rewards', path: '/rewards' },
 ];
 
+function RouteContent({ children, pathname }: RouteContentProps) {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setLoading(false);
+    }, 650);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return <RouteSkeleton pathname={pathname} />;
+  }
+
+  return children;
+}
+
 export function PageLayout({ children }: PageLayoutProps) {
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -61,7 +90,12 @@ export function PageLayout({ children }: PageLayoutProps) {
         <Navbar onOpenMenu={() => setMenuOpen(true)} />
 
         <main className="dashboard-content">
-          {children}
+          <RouteContent
+            key={location.pathname}
+            pathname={location.pathname}
+          >
+            {children}
+          </RouteContent>
         </main>
       </div>
 

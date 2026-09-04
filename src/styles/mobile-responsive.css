@@ -192,3 +192,39 @@ body,
     min-width: min(280px, 86vw);
   }
 }
+@media (max-width: 720px) {
+  .app-layout .dashboard-sidebar .sidebar-title {
+    font-size: 10px;
+  }
+
+  .app-layout .dashboard-sidebar .sidebar-item,
+  .app-layout .dashboard-sidebar .sidebar-item:not(.active) {
+    justify-content: flex-start;
+    font-size: 13px;
+  }
+
+  .app-layout .dashboard-sidebar .sidebar-item span {
+    width: 19px;
+    flex: 0 0 19px;
+    font-size: 16px;
+  }
+
+  .app-layout .dashboard-sidebar .sidebar-footer {
+    display: flex;
+  }
+}
+@media (min-width: 721px) and (max-width: 950px) {
+  .app-layout .dashboard-sidebar .sidebar-footer {
+    display: flex;
+  }
+
+  .app-layout .dashboard-sidebar .sidebar-footer .sidebar-item {
+    justify-content: center;
+    font-size: 0;
+  }
+
+  .app-layout .dashboard-sidebar .sidebar-footer .sidebar-item span {
+    width: auto;
+    font-size: 16px;
+  }
+}

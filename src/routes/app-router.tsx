@@ -1,7 +1,14 @@
 import type { ReactNode } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+} from 'react-router-dom';
 import { AuthProvider } from '../context/auth-context';
 import { DashboardPage, LoginPage, RegisterPage } from '../pages';
+import { NotificationsPage } from '../pages/notifications-page';
+import { SettingsPage } from '../pages/settings-page';
 import { WorkspacePage } from '../pages/workspace-page';
 import { ProtectedRoute } from './protected-route';
 
@@ -76,6 +83,24 @@ export function AppRouter() {
             element={
               <PrivatePage>
                 <WorkspacePage type="transactions" />
+              </PrivatePage>
+            }
+          />
+
+          <Route
+            path="/notifications"
+            element={
+              <PrivatePage>
+                <NotificationsPage />
+              </PrivatePage>
+            }
+          />
+
+          <Route
+            path="/settings"
+            element={
+              <PrivatePage>
+                <SettingsPage />
               </PrivatePage>
             }
           />

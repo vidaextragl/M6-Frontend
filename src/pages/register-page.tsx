@@ -1,6 +1,7 @@
 import { useState, type SyntheticEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/use-auth'
+import { useTheme } from '../hooks/use-theme'
 import { isStrongPassword } from '../utils/validators.utils'
 
 const invaders = [
@@ -9,6 +10,11 @@ const invaders = [
   { top: '40%', color: '#70e6b6', scale: 0.9, duration: '28s', delay: '-16s' },
   { top: '85%', color: '#86f3c7', scale: 1.1, duration: '23s', delay: '-4s' },
   { top: '25%', color: '#70e6b6', scale: 1, duration: '30s', delay: '-12s' },
+  { top: '5%', color: '#86f3c7', scale: 0.8, duration: '27s', delay: '-19s' },
+  { top: '50%', color: '#86f3c7', scale: 1.2, duration: '24s', delay: '-6s' },
+  { top: '75%', color: '#70e6b6', scale: 1, duration: '31s', delay: '-14s' },
+  { top: '95%', color: '#70e6b6', scale: 0.85, duration: '26s', delay: '-3s' },
+  { top: '33%', color: '#86f3c7', scale: 1.15, duration: '29s', delay: '-21s' },
 ]
 
 function CoinMark({ gradientId }: { gradientId: string }) {
@@ -49,6 +55,22 @@ function EyeIcon({ open }: { open: boolean }) {
   )
 }
 
+function ThemeIcon({ theme }: { theme: 'light' | 'dark' }) {
+  if (theme === 'dark') {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+      </svg>
+    )
+  }
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
+    </svg>
+  )
+}
+
 interface PasswordRequirement {
   label: string
   met: boolean
@@ -59,12 +81,13 @@ function getPasswordRequirements(password: string): PasswordRequirement[] {
     { label: 'Al menos 8 caracteres', met: password.length >= 8 },
     { label: 'Al menos una mayúscula', met: /[A-Z]/.test(password) },
     { label: 'Al menos un número', met: /[0-9]/.test(password) },
-    { label: 'Al menos un carácter especial', met: /[!@#$%^&*(),.?":{}|<>_\-+=]/.test(password) },
+    { label: 'Al menos un carácter especial', met: /[-#!@$%^&_+=]/.test(password) },
   ]
 }
 
 export function RegisterPage() {
   const { register } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
   const [name, setName] = useState('')
@@ -113,6 +136,15 @@ export function RegisterPage() {
 
   return (
     <div className="auth-page">
+      <button
+        type="button"
+        className="auth-theme-toggle"
+        onClick={toggleTheme}
+        aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+      >
+        <ThemeIcon theme={theme} />
+      </button>
+
       <div className="auth-layout">
         <div className="auth-hero">
           <div className="invaders-field">

@@ -1,6 +1,7 @@
 import { useState, type SyntheticEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/use-auth'
+import { useTheme } from '../hooks/use-theme'
 
 const invaders = [
   { top: '8%', color: '#70e6b6', scale: 1, duration: '22s', delay: '0s' },
@@ -8,6 +9,11 @@ const invaders = [
   { top: '35%', color: '#70e6b6', scale: 0.8, duration: '26s', delay: '-14s' },
   { top: '82%', color: '#86f3c7', scale: 1, duration: '24s', delay: '-3s' },
   { top: '52%', color: '#70e6b6', scale: 1.2, duration: '34s', delay: '-20s' },
+  { top: '18%', color: '#86f3c7', scale: 0.7, duration: '28s', delay: '-9s' },
+  { top: '44%', color: '#86f3c7', scale: 1, duration: '20s', delay: '-16s' },
+  { top: '60%', color: '#70e6b6', scale: 1.3, duration: '32s', delay: '-11s' },
+  { top: '92%', color: '#70e6b6', scale: 0.9, duration: '25s', delay: '-2s' },
+  { top: '26%', color: '#86f3c7', scale: 1.1, duration: '29s', delay: '-23s' },
 ]
 
 function CoinMark({ gradientId }: { gradientId: string }) {
@@ -48,8 +54,25 @@ function EyeIcon({ open }: { open: boolean }) {
   )
 }
 
+function ThemeIcon({ theme }: { theme: 'light' | 'dark' }) {
+  if (theme === 'dark') {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+      </svg>
+    )
+  }
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
+    </svg>
+  )
+}
+
 export function LoginPage() {
   const { login } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
   const [email, setEmail] = useState('')
@@ -76,6 +99,15 @@ export function LoginPage() {
 
   return (
     <div className="auth-page">
+      <button
+        type="button"
+        className="auth-theme-toggle"
+        onClick={toggleTheme}
+        aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+      >
+        <ThemeIcon theme={theme} />
+      </button>
+
       <div className="auth-layout">
         <div className="auth-hero">
           <div className="invaders-field">

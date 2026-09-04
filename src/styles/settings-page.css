@@ -1,0 +1,291 @@
+.settings-intro {
+  margin-bottom: 27px;
+}
+
+.settings-intro h1 {
+  margin: 7px 0 6px;
+  color: var(--text);
+  font-size: 31px;
+  line-height: 1.15;
+}
+
+.settings-intro > p:last-child {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.settings-page-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 16px;
+}
+
+.settings-surface {
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--panel);
+}
+
+.settings-surface h2 {
+  margin: 0 0 21px;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.settings-profile-heading {
+  margin-bottom: 22px;
+  padding-bottom: 19px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settings-page-avatar {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--mint-soft);
+  color: var(--mint);
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.settings-profile-data {
+  min-width: 0;
+  flex: 1;
+}
+
+.settings-profile-data h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 12px;
+}
+
+.settings-profile-data p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.settings-profile-heading > button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--mint);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--mint);
+  cursor: pointer;
+  font-size: 9px;
+}
+
+.settings-profile-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.settings-profile-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.settings-profile-fields input,
+.settings-profile-fields select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+  background: var(--panel-light);
+  color: var(--text);
+  font-size: 10px;
+}
+
+.settings-profile-fields input:not([readonly]) {
+  border-color: var(--mint);
+}
+
+.settings-currency-field {
+  grid-column: 1 / -1;
+}
+
+.settings-preference-row {
+  min-height: 79px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.settings-preference-row:last-child {
+  border-bottom: 0;
+}
+
+.settings-preference-row > span {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.settings-preference-row strong {
+  color: var(--text);
+  font-size: 10px;
+}
+
+.settings-preference-row small {
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.settings-switch {
+  position: relative;
+  width: 38px;
+  height: 21px;
+  flex: 0 0 38px;
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: #68717d;
+  cursor: pointer;
+}
+
+.settings-switch > span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: transform 0.2s ease;
+}
+
+.settings-switch.enabled {
+  background: var(--mint);
+}
+
+.settings-switch.enabled > span {
+  transform: translateX(17px);
+}
+
+.settings-security-card {
+  grid-column: 1 / -1;
+}
+
+.settings-security-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 11px;
+}
+
+.settings-security-actions button {
+  min-height: 50px;
+  padding: 0 15px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--panel-light);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  font-size: 10px;
+}
+
+.settings-security-actions button span {
+  margin-right: 8px;
+  color: var(--mint);
+}
+
+.settings-security-actions .settings-logout-action {
+  color: var(--red);
+}
+
+.settings-security-actions .settings-logout-action span {
+  color: var(--red);
+}
+
+.settings-status-message {
+  position: fixed;
+  right: 25px;
+  bottom: 25px;
+  z-index: 1200;
+  max-width: 330px;
+  padding: 13px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.25);
+  font-size: 10px;
+}
+
+html[data-theme='light'] .settings-surface,
+html[data-theme='light'] .settings-status-message {
+  background: #ffffff;
+  border-color: #cbd3dc;
+}
+
+html[data-theme='light'] .settings-profile-fields input,
+html[data-theme='light'] .settings-profile-fields select,
+html[data-theme='light'] .settings-security-actions button {
+  background: #f6f7f9;
+  border-color: #cbd3dc;
+  color: #1c212c;
+}
+
+@media (max-width: 800px) {
+  .settings-page-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-security-card {
+    grid-column: auto;
+  }
+
+  .settings-security-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .settings-intro h1 {
+    font-size: 25px;
+  }
+
+  .settings-profile-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-currency-field {
+    grid-column: auto;
+  }
+
+  .settings-profile-heading {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .settings-profile-heading > button {
+    width: 100%;
+  }
+
+  .settings-status-message {
+    right: 15px;
+    bottom: 82px;
+    left: 15px;
+    max-width: none;
+  }
+}

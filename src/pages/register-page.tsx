@@ -1,6 +1,8 @@
 import { useState, type SyntheticEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/use-auth'
+import { useTheme } from '../hooks/use-theme'
+import { isStrongPassword } from '../utils/validators.utils'
 
 const invaders = [
   { top: '12%', color: '#70e6b6', scale: 1, duration: '25s', delay: '0s' },
@@ -8,6 +10,11 @@ const invaders = [
   { top: '40%', color: '#70e6b6', scale: 0.9, duration: '28s', delay: '-16s' },
   { top: '85%', color: '#86f3c7', scale: 1.1, duration: '23s', delay: '-4s' },
   { top: '25%', color: '#70e6b6', scale: 1, duration: '30s', delay: '-12s' },
+  { top: '5%', color: '#86f3c7', scale: 0.8, duration: '27s', delay: '-19s' },
+  { top: '50%', color: '#86f3c7', scale: 1.2, duration: '24s', delay: '-6s' },
+  { top: '75%', color: '#70e6b6', scale: 1, duration: '31s', delay: '-14s' },
+  { top: '95%', color: '#70e6b6', scale: 0.85, duration: '26s', delay: '-3s' },
+  { top: '33%', color: '#86f3c7', scale: 1.15, duration: '29s', delay: '-21s' },
 ]
 
 function CoinMark({ gradientId }: { gradientId: string }) {
@@ -31,21 +38,78 @@ function CoinMark({ gradientId }: { gradientId: string }) {
   )
 }
 
+function EyeIcon({ open }: { open: boolean }) {
+  if (open) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="#99a2ad" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+        <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a20.3 20.3 0 0 1-3.22 4.36M14.12 14.12a3 3 0 1 1-4.24-4.24"></path>
+        <line x1="1" y1="1" x2="23" y2="23"></line>
+      </svg>
+    )
+  }
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="#99a2ad" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    </svg>
+  )
+}
+
+function ThemeIcon({ theme }: { theme: 'light' | 'dark' }) {
+  if (theme === 'dark') {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+      </svg>
+    )
+  }
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
+    </svg>
+  )
+}
+
+interface PasswordRequirement {
+  label: string
+  met: boolean
+}
+
+function getPasswordRequirements(password: string): PasswordRequirement[] {
+  return [
+    { label: 'Al menos 8 caracteres', met: password.length >= 8 },
+    { label: 'Al menos una mayúscula', met: /[A-Z]/.test(password) },
+    { label: 'Al menos un número', met: /[0-9]/.test(password) },
+    { label: 'Al menos un carácter especial', met: /[-#!@$%^&_+=]/.test(password) },
+  ]
+}
+
 export function RegisterPage() {
   const { register } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const passwordRequirements = getPasswordRequirements(password)
+
   async function handleSubmit(event: SyntheticEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault()
     setError(null)
+
+    if (!isStrongPassword(password)) {
+      setError('La contraseña no cumple los requisitos')
+      return
+    }
 
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden')
@@ -72,6 +136,15 @@ export function RegisterPage() {
 
   return (
     <div className="auth-page">
+      <button
+        type="button"
+        className="auth-theme-toggle"
+        onClick={toggleTheme}
+        aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+      >
+        <ThemeIcon theme={theme} />
+      </button>
+
       <div className="auth-layout">
         <div className="auth-hero">
           <div className="invaders-field">
@@ -137,28 +210,59 @@ export function RegisterPage() {
 
               <div className="auth-field">
                 <label htmlFor="password">Contraseña</label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  autoComplete="new-password"
-                />
+                <div className="password-input-wrap">
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={8}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  >
+                    <EyeIcon open={showPassword} />
+                  </button>
+                </div>
+
+                {password.length > 0 && (
+                  <ul className="password-requirements">
+                    {passwordRequirements.map((req) => (
+                      <li key={req.label} className={req.met ? 'met' : ''}>
+                        <span className="req-icon">{req.met ? '✓' : ''}</span>
+                        {req.label}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               <div className="auth-field">
                 <label htmlFor="confirmPassword">Confirmar contraseña</label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  autoComplete="new-password"
-                />
+                <div className="password-input-wrap">
+                  <input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={8}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  >
+                    <EyeIcon open={showConfirmPassword} />
+                  </button>
+                </div>
               </div>
 
               <div className="auth-checkbox-field">
@@ -169,7 +273,7 @@ export function RegisterPage() {
                   onChange={(e) => setAcceptedTerms(e.target.checked)}
                 />
                 <label htmlFor="terms">
-                  Acepto los <a href="#">términos y condiciones</a> y la <a href="#">política de privacidad</a>.
+                  Acepto los <Link to="/terms" target="_blank" rel="noopener noreferrer">términos y condiciones</Link> y la <Link to="/privacy" target="_blank" rel="noopener noreferrer">política de privacidad</Link>.
                 </label>
               </div>
 

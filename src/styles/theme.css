@@ -1,0 +1,119 @@
+html[data-theme='light'] {
+  --background: #f6f7f9;
+  --sidebar: #f6f7f9;
+  --panel: #ffffff;
+  --panel-light: #f0f3f6;
+  --border: #cbd3dc;
+  --text: #1c212c;
+  --muted: #5c697a;
+  --mint: #2f745d;
+  --mint-bright: #245f4d;
+  --mint-soft: rgba(47, 116, 93, 0.12);
+  --red: #c94b4b;
+  color-scheme: light;
+}
+
+html[data-theme='light'] body,
+html[data-theme='light'] .app-layout {
+  background: var(--background);
+  color: var(--text);
+}
+
+html[data-theme='light'] .dashboard-sidebar,
+html[data-theme='light'] .dashboard-navbar,
+html[data-theme='light'] .mobile-bottom-nav {
+  background: var(--sidebar);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+html[data-theme='light'] .dashboard-card,
+html[data-theme='light'] .currency-card,
+html[data-theme='light'] .transactions-card,
+html[data-theme='light'] .quick-card,
+html[data-theme='light'] .workspace-hero,
+html[data-theme='light'] .workspace-panel,
+html[data-theme='light'] .cashback-big-card,
+html[data-theme='light'] .rewards-banner,
+html[data-theme='light'] .reward-card,
+html[data-theme='light'] .drop-card,
+html[data-theme='light'] .workspace-mini-card,
+html[data-theme='light'] .workspace-currency-card {
+  background-color: var(--panel);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+html[data-theme='light'] h1,
+html[data-theme='light'] h2,
+html[data-theme='light'] h3,
+html[data-theme='light'] .sidebar-brand-text strong,
+html[data-theme='light'] .dashboard-navbar strong,
+html[data-theme='light'] .balance-header h2,
+html[data-theme='light'] .currency-top strong,
+html[data-theme='light'] .currency-card h3,
+html[data-theme='light'] .transaction-left strong,
+html[data-theme='light'] .transaction-amount,
+html[data-theme='light'] .quick-card,
+html[data-theme='light'] .workspace-currency-top strong,
+html[data-theme='light'] .workspace-currency-card h3,
+html[data-theme='light'] .workspace-transaction-left strong,
+html[data-theme='light'] .workspace-negative-amount,
+html[data-theme='light'] .workspace-mini-card strong,
+html[data-theme='light'] .drop-card strong {
+  color: var(--text);
+}
+
+html[data-theme='light'] .sidebar-item,
+html[data-theme='light'] .sidebar-item span,
+html[data-theme='light'] .sidebar-footer button {
+  color: var(--muted);
+}
+
+html[data-theme='light'] .sidebar-item:hover,
+html[data-theme='light'] .sidebar-item.active {
+  background: var(--mint-soft);
+  color: var(--mint);
+}
+
+html[data-theme='light'] .search-box,
+html[data-theme='light'] .navbar-icon,
+html[data-theme='light'] .logout-button,
+html[data-theme='light'] .mobile-menu-button,
+html[data-theme='light'] .mobile-close-button {
+  background: var(--panel);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+html[data-theme='light'] .search-box input,
+html[data-theme='light'] .exchange-input input,
+html[data-theme='light'] .exchange-input select {
+  color: var(--text);
+}
+
+html[data-theme='light'] .exchange-input {
+  background: var(--panel);
+}
+
+html[data-theme='light'] .balance-actions button,
+html[data-theme='light'] .workspace-actions button,
+html[data-theme='light'] .drop-card button {
+  background: var(--panel-light);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+html[data-theme='light'] .balance-actions .mint-button,
+html[data-theme='light'] .workspace-actions .primary-action,
+html[data-theme='light'] .workspace-main-button {
+  background: var(--mint);
+  border-color: var(--mint);
+  color: #ffffff;
+}
+
+html[data-theme='light'] .progress-track,
+html[data-theme='light'] .cashback-big-track,
+html[data-theme='light'] .skeleton {
+  background: #e3e8ed;
+}

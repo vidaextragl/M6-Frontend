@@ -1,6 +1,12 @@
-import { useEffect, useState } from 'react';  
+import { useEffect, useState } from 'react';
 import { WorkspaceSkeleton } from '../components/ui/skeleton-loader';
 import { PageLayout } from '../components/layout/page-layout';
+import { walletsApi } from '../api/wallets.api';
+import { exchangeApi, type ExchangeRateQuote } from '../api/exchange.api';
+import { rewardsApi, type RewardsSummary } from '../api/rewards.api';
+import { transactionsApi, type Transaction } from '../api/transactions.api';
+import { formatTransactionAmount, getTransactionLabel } from '../utils/transactions.utils';
+import type { CashbackSummary, WalletSummary } from '../types/wallet.types';
 import './dashboard-page.css';
 
 type WorkspaceType =
@@ -15,41 +21,25 @@ interface WorkspacePageProps {
   type: WorkspaceType;
 }
 
-const currencies = [
-  { code: 'ARS', name: 'Argentine Peso', value: '$425,000', change: '+1.8%' },
-  { code: 'USD', name: 'US Dollar', value: '$3,200', change: '+2.4%' },
-  { code: 'EUR', name: 'Euro', value: '€1,850', change: '-0.6%' },
-  { code: 'CLP', name: 'Chilean Peso', value: '$780,000', change: '+0.9%' },
-  { code: 'COP', name: 'Colombian Peso', value: '$2,450,000', change: '+1.2%' },
-  { code: 'BRL', name: 'Brazilian Real', value: 'R$5,400', change: '-0.3%' },
-];
-
-const transactions = [
-  ['Steam purchase', 'Gaming · Today, 10:24 AM', '-$24.90'],
-  ['Cashback received', 'Cashback · Yesterday, 4:18 PM', '+$12.50'],
-  ['USD to EUR swap', 'Exchange · Aug 28, 2026', '+€102.40'],
-  ['Spotify', 'Entertainment · Aug 27, 2026', '-$9.99'],
-  ['Salary payment', 'Income · Aug 25, 2026', '+$2,450.00'],
-];
-
 export function WorkspacePage({ type }: WorkspacePageProps) {
-   const [loadedType, setLoadedType] = useState<WorkspaceType | null>(null);
+  const [loadedType, setLoadedType] = useState<WorkspaceType | null>(null);
 
-useEffect(() => {
-  const timer = window.setTimeout(() => {
-    setLoadedType(type);
-  }, 600);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setLoadedType(type);
+    }, 300);
 
-  return () => window.clearTimeout(timer);
-}, [type]);
+    return () => window.clearTimeout(timer);
+  }, [type]);
 
-if (loadedType !== type) {
-  return (
-    <PageLayout>
-      <WorkspaceSkeleton />
-    </PageLayout>
-  );
-}
+  if (loadedType !== type) {
+    return (
+      <PageLayout>
+        <WorkspaceSkeleton />
+      </PageLayout>
+    );
+  }
+
   return (
     <PageLayout>
       {type === 'wallet' && <WalletContent />}
@@ -81,6 +71,14 @@ function PageTitle({
 }
 
 function WalletContent() {
+  const [wallet, setWallet] = useState<WalletSummary | null>(null);
+
+  useEffect(() => {
+    walletsApi.getWallet().then(setWallet);
+  }, []);
+
+  if (!wallet) return null;
+
   return (
     <>
       <PageTitle
@@ -92,8 +90,12 @@ function WalletContent() {
       <section className="workspace-hero">
         <div>
           <p className="small-label">TOTAL BALANCE</p>
-          <h2>$12,450.75 <span>USD</span></h2>
-          <p className="positive-text">↗ +8.4% this month</p>
+          <h2>
+            ${wallet.totalBalance.toFixed(2)} <span>USD</span>
+          </h2>
+          <p className={wallet.monthlyChangePercentage >= 0 ? 'positive-text' : 'negative-text'}>
+            {wallet.monthlyChangePercentage >= 0 ? '↗' : '↘'} {wallet.monthlyChangePercentage}% this month
+          </p>
         </div>
 
         <div className="workspace-actions">
@@ -105,11 +107,10 @@ function WalletContent() {
 
       <div className="section-heading workspace-section-title">
         <h2>Your currencies</h2>
-        <button type="button">Add currency +</button>
       </div>
 
       <div className="workspace-currency-grid">
-        {currencies.map((currency) => (
+        {wallet.currencies.map((currency) => (
           <article className="workspace-currency-card" key={currency.code}>
             <div className="workspace-currency-top">
               <span>{currency.code[0]}</span>
@@ -119,16 +120,14 @@ function WalletContent() {
               </div>
             </div>
 
-            <h3>{currency.value}</h3>
+            <h3>
+              {currency.symbol}
+              {currency.balance.toFixed(2)}
+            </h3>
 
-            <p
-              className={
-                currency.change.startsWith('+')
-                  ? 'positive-text'
-                  : 'negative-text'
-              }
-            >
-              {currency.change}
+            <p className={currency.changePercentage >= 0 ? 'positive-text' : 'negative-text'}>
+              {currency.changePercentage >= 0 ? '+' : ''}
+              {currency.changePercentage}%
             </p>
           </article>
         ))}
@@ -137,7 +136,33 @@ function WalletContent() {
   );
 }
 
+const EXCHANGE_CURRENCIES = ['USD', 'ARS', 'EUR', 'BRL'];
+
 function ExchangeContent() {
+  const [fromCurrency, setFromCurrency] = useState('USD');
+  const [toCurrency, setToCurrency] = useState('EUR');
+  const [amountToReceive, setAmountToReceive] = useState('100');
+  const [quote, setQuote] = useState<ExchangeRateQuote | null>(null);
+  const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>('idle');
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    if (fromCurrency === toCurrency) return;
+    exchangeApi.getRate(fromCurrency, toCurrency).then(setQuote).catch(() => setQuote(null));
+  }, [fromCurrency, toCurrency]);
+
+  async function handleExchange() {
+    setStatus('loading');
+    try {
+      await exchangeApi.swap(fromCurrency, toCurrency, amountToReceive);
+      setStatus('success');
+      setMessage('Exchange completed successfully.');
+    } catch (err) {
+      setStatus('error');
+      setMessage(err instanceof Error ? err.message : 'Exchange failed.');
+    }
+  }
+
   return (
     <>
       <PageTitle
@@ -151,12 +176,10 @@ function ExchangeContent() {
           <p className="small-label">YOU SEND</p>
 
           <div className="exchange-input">
-            <input defaultValue="1000" />
-            <select defaultValue="USD">
-              <option>USD</option>
-              <option>ARS</option>
-              <option>EUR</option>
-              <option>BRL</option>
+            <select value={fromCurrency} onChange={(e) => setFromCurrency(e.target.value)}>
+              {EXCHANGE_CURRENCIES.map((code) => (
+                <option key={code}>{code}</option>
+              ))}
             </select>
           </div>
 
@@ -165,40 +188,45 @@ function ExchangeContent() {
           <p className="small-label">YOU RECEIVE</p>
 
           <div className="exchange-input">
-            <input defaultValue="923.40" />
-            <select defaultValue="EUR">
-              <option>EUR</option>
-              <option>USD</option>
-              <option>ARS</option>
-              <option>BRL</option>
+            <input
+              value={amountToReceive}
+              onChange={(e) => setAmountToReceive(e.target.value)}
+              inputMode="decimal"
+            />
+            <select value={toCurrency} onChange={(e) => setToCurrency(e.target.value)}>
+              {EXCHANGE_CURRENCIES.map((code) => (
+                <option key={code}>{code}</option>
+              ))}
             </select>
           </div>
 
-          <div className="exchange-rate">
-            <span>Exchange rate</span>
-            <strong>1 USD = 0.9234 EUR</strong>
-          </div>
+          {quote && (
+            <div className="exchange-rate">
+              <span>Exchange rate</span>
+              <strong>
+                1 {fromCurrency} = {quote.rate} {toCurrency}
+              </strong>
+            </div>
+          )}
 
-          <button className="workspace-main-button">
-            Review exchange
+          <button
+            className="workspace-main-button"
+            onClick={handleExchange}
+            disabled={status === 'loading' || fromCurrency === toCurrency}
+          >
+            {status === 'loading' ? 'Processing...' : 'Confirm exchange'}
           </button>
+
+          {message && (
+            <p className={status === 'error' ? 'negative-text' : 'positive-text'}>{message}</p>
+          )}
         </section>
 
         <section className="workspace-panel exchange-info">
           <p className="small-label">TODAY'S RATE</p>
-          <h2>1 USD</h2>
-          <h3>= 0.9234 EUR</h3>
-          <p>Rates shown are simulated frontend data.</p>
-
-          <div className="exchange-stat">
-            <span>Daily change</span>
-            <strong className="positive-text">+0.42%</strong>
-          </div>
-
-          <div className="exchange-stat">
-            <span>Estimated fee</span>
-            <strong>$0.00</strong>
-          </div>
+          <h2>1 {fromCurrency}</h2>
+          <h3>= {quote ? quote.rate : '...'} {toCurrency}</h3>
+          <p>Rate provided by {quote?.provider ?? '—'}.</p>
         </section>
       </div>
     </>
@@ -206,6 +234,14 @@ function ExchangeContent() {
 }
 
 function CashbackContent() {
+  const [cashback, setCashback] = useState<CashbackSummary | null>(null);
+
+  useEffect(() => {
+    walletsApi.getCashback().then(setCashback);
+  }, []);
+
+  if (!cashback) return null;
+
   return (
     <>
       <PageTitle
@@ -218,45 +254,52 @@ function CashbackContent() {
         <div className="cashback-big-icon">✣</div>
 
         <p className="small-label">AVAILABLE CASHBACK</p>
-        <h2>$85.40</h2>
+        <h2>${cashback.available.toFixed(2)}</h2>
         <p>Keep playing. Keep earning.</p>
 
         <div className="cashback-big-progress-title">
           <span>Monthly progress</span>
-          <strong>71%</strong>
+          <strong>{cashback.progressPercentage}%</strong>
         </div>
 
         <div className="cashback-big-track">
-          <div />
+          <div style={{ width: `${cashback.progressPercentage}%` }} />
         </div>
 
-        <small>$85.40 of $120.00 monthly goal</small>
+        <small>
+          ${cashback.monthlyEarned.toFixed(2)} of ${cashback.monthlyGoal.toFixed(2)} monthly goal
+        </small>
       </section>
-
-      <div className="workspace-three-grid">
-        <article className="workspace-mini-card">
-          <span>🎮</span>
-          <p>Gaming cashback</p>
-          <strong>$32.50</strong>
-        </article>
-
-        <article className="workspace-mini-card">
-          <span>🛍</span>
-          <p>Shopping cashback</p>
-          <strong>$28.40</strong>
-        </article>
-
-        <article className="workspace-mini-card">
-          <span>✦</span>
-          <p>Bonus rewards</p>
-          <strong>$24.50</strong>
-        </article>
-      </div>
     </>
   );
 }
 
 function RewardsContent() {
+  const [summary, setSummary] = useState<RewardsSummary | null>(null);
+  const [redeeming, setRedeeming] = useState<string | null>(null);
+
+  function reload() {
+    rewardsApi.getSummary().then(setSummary);
+  }
+
+  useEffect(() => {
+    reload();
+  }, []);
+
+  async function handleRedeem(catalogItemId: string) {
+    setRedeeming(catalogItemId);
+    try {
+      await rewardsApi.redeem(catalogItemId);
+      reload();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'No se pudo canjear la recompensa.');
+    } finally {
+      setRedeeming(null);
+    }
+  }
+
+  if (!summary) return null;
+
   return (
     <>
       <PageTitle
@@ -268,7 +311,7 @@ function RewardsContent() {
       <section className="rewards-banner">
         <div>
           <p className="small-label">YOUR POINTS</p>
-          <h2>4,850</h2>
+          <h2>{summary.pointsBalance.toLocaleString()}</h2>
           <p>Extra Points</p>
         </div>
 
@@ -276,16 +319,17 @@ function RewardsContent() {
       </section>
 
       <div className="workspace-three-grid">
-        {[
-          ['10% Cashback Boost', '1,500 pts'],
-          ['Free exchange', '2,000 pts'],
-          ['Premium badge', '3,500 pts'],
-        ].map(([title, price]) => (
-          <article className="reward-card" key={title}>
+        {summary.catalog.map((item) => (
+          <article className="reward-card" key={item.id}>
             <div className="reward-icon">★</div>
-            <h3>{title}</h3>
-            <p>Unlock this reward using your Extra Points.</p>
-            <button>{price}</button>
+            <h3>{item.name}</h3>
+            <p>{item.description ?? 'Unlock this reward using your Extra Points.'}</p>
+            <button
+              disabled={summary.pointsBalance < item.costPoints || redeeming === item.id}
+              onClick={() => handleRedeem(item.id)}
+            >
+              {redeeming === item.id ? 'Redeeming...' : `${item.costPoints} pts`}
+            </button>
           </article>
         ))}
       </div>
@@ -310,28 +354,30 @@ function DropsContent() {
           <strong>Ends in 2 days</strong>
           <button>View drop</button>
         </article>
-
-        <article className="drop-card">
-          <span className="drop-tag">COMING SOON</span>
-          <h2>Travel Bonus</h2>
-          <p>Special cashback for international purchases.</p>
-          <strong>Starts Sep 5</strong>
-          <button>Remind me</button>
-        </article>
-
-        <article className="drop-card">
-          <span className="drop-tag">LIMITED</span>
-          <h2>Extra Friday</h2>
-          <p>Unlock surprise benefits every Friday.</p>
-          <strong>Weekly</strong>
-          <button>Learn more</button>
-        </article>
       </div>
     </>
   );
 }
 
+const INCOME_TYPES = ['DEPOSIT', 'REWARD_CASHBACK'];
+const EXPENSE_TYPES = ['WITHDRAWAL', 'BUY'];
+const EXCHANGE_TYPES = ['SWAP'];
+
 function TransactionsContent() {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [filter, setFilter] = useState<'All' | 'Income' | 'Expenses' | 'Exchange'>('All');
+
+  useEffect(() => {
+    transactionsApi.list({ limit: 50 }).then((res) => setTransactions(res.transactions));
+  }, []);
+
+  const filtered = transactions.filter((tx) => {
+    if (filter === 'All') return true;
+    if (filter === 'Income') return INCOME_TYPES.includes(tx.type);
+    if (filter === 'Expenses') return EXPENSE_TYPES.includes(tx.type);
+    return EXCHANGE_TYPES.includes(tx.type);
+  });
+
   return (
     <>
       <PageTitle
@@ -341,35 +387,37 @@ function TransactionsContent() {
       />
 
       <div className="transaction-toolbar">
-        <button className="active-filter">All</button>
-        <button>Income</button>
-        <button>Expenses</button>
-        <button>Exchange</button>
+        {(['All', 'Income', 'Expenses', 'Exchange'] as const).map((tab) => (
+          <button
+            key={tab}
+            className={filter === tab ? 'active-filter' : ''}
+            onClick={() => setFilter(tab)}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
       <section className="workspace-panel">
-        {transactions.map(([name, detail, amount]) => (
-          <div className="workspace-transaction" key={name}>
-            <div className="workspace-transaction-left">
-              <div>{name[0]}</div>
+        {filtered.map((tx) => {
+          const amount = formatTransactionAmount(tx);
+          return (
+            <div className="workspace-transaction" key={tx.id}>
+              <div className="workspace-transaction-left">
+                <div>{tx.type[0]}</div>
 
-              <span>
-                <strong>{name}</strong>
-                <small>{detail}</small>
-              </span>
+                <span>
+                  <strong>{getTransactionLabel(tx)}</strong>
+                  <small>{new Date(tx.createdAt).toLocaleString()}</small>
+                </span>
+              </div>
+
+              <strong className={amount.positive ? 'positive-text' : 'workspace-negative-amount'}>
+                {amount.text}
+              </strong>
             </div>
-
-            <strong
-              className={
-                amount.startsWith('+')
-                  ? 'positive-text'
-                  : 'workspace-negative-amount'
-              }
-            >
-              {amount}
-            </strong>
-          </div>
-        ))}
+          );
+        })}
       </section>
     </>
   );

@@ -1,61 +1,45 @@
 import { DashboardSkeleton } from '../components/ui/skeleton-loader';
 import { useEffect, useState } from 'react';
-import { walletsApi } from '../api';
+import { useNavigate } from 'react-router-dom';
+import { walletsApi, transactionsApi } from '../api';
+import type { Transaction } from '../api/transactions.api';
 import { PageLayout } from '../components/layout/page-layout';
 import { BalanceCard, BalanceSummaryList } from '../components/wallet';
 import { useAuth } from '../hooks/use-auth';
+import { formatTransactionAmount, getTransactionLabel } from '../utils/transactions.utils';
 import type {
   CashbackSummary,
   WalletSummary,
 } from '../types/wallet.types';
 import './dashboard-page.css';
 
-const transactions = [
-  {
-    name: 'Steam purchase',
-    description: 'Gaming · Today, 10:24 AM',
-    amount: '-$24.90',
-    icon: '▣',
-  },
-  {
-    name: 'Cashback received',
-    description: 'Cashback · Yesterday, 4:18 PM',
-    amount: '+$12.50',
-    icon: '✣',
-    positive: true,
-  },
-  {
-    name: 'USD to EUR swap',
-    description: 'Swap · Aug 28, 2026',
-    amount: '+€102.40',
-    icon: '⇄',
-    positive: true,
-  },
-];
-
 const quickActions = [
-  { icon: '↗', title: 'Buy currency', subtitle: 'Exchange funds' },
-  { icon: '✣', title: 'Get cashback', subtitle: 'Earn rewards' },
-  { icon: '⇄', title: 'Swap', subtitle: 'Move between wallets' },
-  { icon: '▣', title: 'Deposit', subtitle: 'Add money' },
+  { icon: '↗', title: 'Buy currency', subtitle: 'Exchange funds', path: '/exchange' },
+  { icon: '✣', title: 'Get cashback', subtitle: 'Earn rewards', path: '/cashback' },
+  { icon: '⇄', title: 'Swap', subtitle: 'Move between wallets', path: '/exchange' },
+  { icon: '▣', title: 'Deposit', subtitle: 'Add money', path: '/wallet' },
 ];
 
 export function DashboardPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
   const [cashback, setCashback] = useState<CashbackSummary | null>(null);
+  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
     async function loadDashboard() {
-      const [walletData, cashbackData] = await Promise.all([
+      const [walletData, cashbackData, txData] = await Promise.all([
         walletsApi.getWallet(),
         walletsApi.getCashback(),
+        transactionsApi.list({ limit: 3 }),
       ]);
 
       setWallet(walletData);
       setCashback(cashbackData);
+      setRecentTransactions(txData.transactions);
     }
 
     loadDashboard();
@@ -138,16 +122,16 @@ export function DashboardPage() {
             {cashback.monthlyGoal.toFixed(2)} available
           </p>
 
-          <button type="button" className="outline-button">
+          <button type="button" className="outline-button" onClick={() => navigate('/cashback')}>
             View cashback ›
           </button>
         </article>
       </div>
 
       <div className="balance-actions">
-        <button type="button">Deposit</button>
-        <button type="button">Withdraw</button>
-        <button type="button" className="mint-button">
+        <button type="button" onClick={() => navigate('/wallet')}>Deposit</button>
+        <button type="button" onClick={() => navigate('/wallet')}>Withdraw</button>
+        <button type="button" className="mint-button" onClick={() => navigate('/exchange')}>
           Swap ⇄
         </button>
       </div>
@@ -158,32 +142,35 @@ export function DashboardPage() {
         <section className="transactions-section">
           <div className="section-heading">
             <h2>Recent transactions</h2>
-            <button type="button">View all ›</button>
+            <button type="button" onClick={() => navigate('/transactions')}>View all ›</button>
           </div>
 
           <div className="transactions-card">
-            {transactions.map((transaction) => (
-              <div className="transaction" key={transaction.name}>
-                <div className="transaction-left">
-                  <div className="transaction-icon">{transaction.icon}</div>
+            {recentTransactions.map((transaction) => {
+              const amount = formatTransactionAmount(transaction);
+              return (
+                <div className="transaction" key={transaction.id}>
+                  <div className="transaction-left">
+                    <div className="transaction-icon">{transaction.type[0]}</div>
 
-                  <div>
-                    <strong>{transaction.name}</strong>
-                    <p>{transaction.description}</p>
+                    <div>
+                      <strong>{getTransactionLabel(transaction)}</strong>
+                      <p>{new Date(transaction.createdAt).toLocaleString()}</p>
+                    </div>
                   </div>
-                </div>
 
-                <span
-                  className={
-                    transaction.positive
-                      ? 'positive-text'
-                      : 'transaction-amount'
-                  }
-                >
-                  {transaction.amount}
-                </span>
-              </div>
-            ))}
+                  <span
+                    className={
+                      amount.positive
+                        ? 'positive-text'
+                        : 'transaction-amount'
+                    }
+                  >
+                    {amount.text}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </section>
 
@@ -198,6 +185,7 @@ export function DashboardPage() {
                 type="button"
                 className="quick-card"
                 key={action.title}
+                onClick={() => navigate(action.path)}
               >
                 <span>{action.icon}</span>
 

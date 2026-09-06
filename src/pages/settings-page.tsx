@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { PageLayout } from '../components/layout/page-layout';
 import { useAuth } from '../hooks/use-auth';
+import { usersApi } from '../api/users.api';
 import '../styles/settings-page.css';
 
 function getSavedPreference(key: string) {
@@ -48,15 +49,20 @@ export function SettingsPage() {
     window.setTimeout(() => setMessage(''), 2500);
   }
 
-  function editOrSaveProfile() {
+  async function editOrSaveProfile() {
     if (!editing) {
       setEditing(true);
       return;
     }
 
-    localStorage.setItem('vida-extra:profile-name', fullName);
-    setEditing(false);
-    showMessage('Profile saved successfully.');
+    try {
+      await usersApi.updateProfile({ name: fullName });
+      localStorage.setItem('vida-extra:profile-name', fullName);
+      setEditing(false);
+      showMessage('Profile saved successfully.');
+    } catch (err) {
+      showMessage(err instanceof Error ? err.message : 'Could not save profile.');
+    }
   }
 
   function changeCurrency(value: string) {

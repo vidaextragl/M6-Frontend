@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { walletsApi, transactionsApi } from '../api';
 import type { Transaction } from '../api/transactions.api';
 import { PageLayout } from '../components/layout/page-layout';
+import { ExchangeRatesWidget } from '../components/exchange-rates/exchange-rates-widget';
 import { BalanceCard, BalanceSummaryList } from '../components/wallet';
 import { useAuth } from '../hooks/use-auth';
 import { formatTransactionAmount, getTransactionLabel } from '../utils/transactions.utils';
@@ -88,7 +89,7 @@ export function DashboardPage() {
 
         <p>Here's your financial snapshot for today.</p>
       </section>
-
+<ExchangeRatesWidget />
       <div className="top-dashboard-grid">
         <BalanceCard
           totalBalance={wallet.totalBalance}
@@ -135,6 +136,8 @@ export function DashboardPage() {
           Swap ⇄
         </button>
       </div>
+
+      
 
       <BalanceSummaryList currencies={wallet.currencies} />
 

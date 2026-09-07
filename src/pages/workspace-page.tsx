@@ -8,6 +8,7 @@ import { transactionsApi, type Transaction } from '../api/transactions.api';
 import { formatTransactionAmount, getTransactionLabel } from '../utils/transactions.utils';
 import type { CashbackSummary, WalletSummary } from '../types/wallet.types';
 import './dashboard-page.css';
+import './exchange-modes.css';
 
 type WorkspaceType =
   | 'wallet'
@@ -138,62 +139,204 @@ function WalletContent() {
 
 const EXCHANGE_CURRENCIES = ['USD', 'ARS', 'EUR', 'BRL'];
 
+type ExchangeMode = 'buy' | 'sell' | 'swap';
+
 function ExchangeContent() {
-  const [fromCurrency, setFromCurrency] = useState('USD');
-  const [toCurrency, setToCurrency] = useState('EUR');
+  const [mode, setMode] = useState<ExchangeMode>('buy');
+  const [fromCurrency, setFromCurrency] = useState('ARS');
+  const [toCurrency, setToCurrency] = useState('USD');
   const [amountToReceive, setAmountToReceive] = useState('100');
-  const [quote, setQuote] = useState<ExchangeRateQuote | null>(null);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>('idle');
+  const [quote, setQuote] =
+    useState<ExchangeRateQuote | null>(null);
+  const [status, setStatus] =
+    useState<'idle' | 'loading' | 'error' | 'success'>(
+      'idle',
+    );
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (fromCurrency === toCurrency) return;
-    exchangeApi.getRate(fromCurrency, toCurrency).then(setQuote).catch(() => setQuote(null));
+    if (fromCurrency === toCurrency) {
+      setQuote(null);
+      return;
+    }
+
+    exchangeApi
+      .getRate(fromCurrency, toCurrency)
+      .then(setQuote)
+      .catch(() => setQuote(null));
   }, [fromCurrency, toCurrency]);
 
+  const amountToPay =
+    quote && Number(amountToReceive) > 0
+      ? Number(amountToReceive) / quote.rate
+      : 0;
+
+  function selectMode(nextMode: ExchangeMode) {
+    setMode(nextMode);
+    setMessage('');
+    setStatus('idle');
+
+    if (nextMode === 'buy') {
+      setFromCurrency('ARS');
+      setToCurrency('USD');
+    }
+
+    if (nextMode === 'sell') {
+      setFromCurrency('USD');
+      setToCurrency('ARS');
+    }
+  }
+
+  function reverseCurrencies() {
+    setFromCurrency(toCurrency);
+    setToCurrency(fromCurrency);
+    setMessage('');
+  }
+
   async function handleExchange() {
+    if (
+      fromCurrency === toCurrency ||
+      Number(amountToReceive) <= 0
+    ) {
+      setStatus('error');
+      setMessage('Enter a valid amount and two different currencies.');
+      return;
+    }
+
     setStatus('loading');
+    setMessage('');
+
     try {
-      await exchangeApi.swap(fromCurrency, toCurrency, amountToReceive);
+      await exchangeApi.swap(
+        fromCurrency,
+        toCurrency,
+        amountToReceive,
+      );
+
       setStatus('success');
       setMessage('Exchange completed successfully.');
     } catch (err) {
       setStatus('error');
-      setMessage(err instanceof Error ? err.message : 'Exchange failed.');
+      setMessage(
+        err instanceof Error
+          ? err.message
+          : 'Exchange failed.',
+      );
     }
   }
+
+  const actionLabel =
+    mode === 'buy'
+      ? `Buy ${toCurrency}`
+      : mode === 'sell'
+        ? `Sell ${fromCurrency}`
+        : `Swap to ${toCurrency}`;
 
   return (
     <>
       <PageTitle
         eyebrow="EXCHANGE"
-        title="Exchange currencies"
-        description="Convert between your available currencies instantly."
+        title={
+          mode === 'buy'
+            ? 'Buy currency'
+            : mode === 'sell'
+              ? 'Sell currency'
+              : 'Swap currencies'
+        }
+        description="Exchange your money using current market rates."
       />
+
+      <div className="exchange-mode-tabs">
+        <button
+          type="button"
+          className={mode === 'buy' ? 'active' : ''}
+          onClick={() => selectMode('buy')}
+        >
+          Buy
+        </button>
+
+        <button
+          type="button"
+          className={mode === 'sell' ? 'active' : ''}
+          onClick={() => selectMode('sell')}
+        >
+          Sell
+        </button>
+
+        <button
+          type="button"
+          className={mode === 'swap' ? 'active' : ''}
+          onClick={() => selectMode('swap')}
+        >
+          Swap
+        </button>
+      </div>
 
       <div className="exchange-layout">
         <section className="workspace-panel exchange-box">
-          <p className="small-label">YOU SEND</p>
+          <p className="small-label">YOU PAY</p>
 
           <div className="exchange-input">
-            <select value={fromCurrency} onChange={(e) => setFromCurrency(e.target.value)}>
+            <input
+              value={
+                quote && amountToPay > 0
+                  ? amountToPay.toFixed(2)
+                  : ''
+              }
+              readOnly
+              aria-label="Amount to pay"
+            />
+
+            <select
+              value={fromCurrency}
+              onChange={(event) =>
+                setFromCurrency(event.target.value)
+              }
+              aria-label="Currency to pay"
+            >
               {EXCHANGE_CURRENCIES.map((code) => (
                 <option key={code}>{code}</option>
               ))}
             </select>
           </div>
 
-          <div className="exchange-divider">⇅</div>
+          <button
+            type="button"
+            className="exchange-reverse-button"
+            onClick={reverseCurrencies}
+            aria-label="Reverse currencies"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M7 7h11m0 0-3-3m3 3-3 3M17 17H6m0 0 3 3m-3-3 3-3"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.8"
+              />
+            </svg>
+          </button>
 
           <p className="small-label">YOU RECEIVE</p>
 
           <div className="exchange-input">
             <input
               value={amountToReceive}
-              onChange={(e) => setAmountToReceive(e.target.value)}
+              onChange={(event) =>
+                setAmountToReceive(event.target.value)
+              }
               inputMode="decimal"
+              aria-label="Amount to receive"
             />
-            <select value={toCurrency} onChange={(e) => setToCurrency(e.target.value)}>
+
+            <select
+              value={toCurrency}
+              onChange={(event) =>
+                setToCurrency(event.target.value)
+              }
+              aria-label="Currency to receive"
+            >
               {EXCHANGE_CURRENCIES.map((code) => (
                 <option key={code}>{code}</option>
               ))}
@@ -201,32 +344,77 @@ function ExchangeContent() {
           </div>
 
           {quote && (
-            <div className="exchange-rate">
-              <span>Exchange rate</span>
-              <strong>
-                1 {fromCurrency} = {quote.rate} {toCurrency}
-              </strong>
-            </div>
+            <>
+              <div className="exchange-rate">
+                <span>Exchange rate</span>
+
+                <strong>
+                  1 {fromCurrency} = {quote.rate}{' '}
+                  {toCurrency}
+                </strong>
+              </div>
+
+              <div className="exchange-rate">
+                <span>Rate provider</span>
+                <strong>{quote.provider}</strong>
+              </div>
+            </>
           )}
 
           <button
+            type="button"
             className="workspace-main-button"
             onClick={handleExchange}
-            disabled={status === 'loading' || fromCurrency === toCurrency}
+            disabled={
+              status === 'loading' ||
+              fromCurrency === toCurrency
+            }
           >
-            {status === 'loading' ? 'Processing...' : 'Confirm exchange'}
+            {status === 'loading'
+              ? 'Processing...'
+              : actionLabel}
           </button>
 
           {message && (
-            <p className={status === 'error' ? 'negative-text' : 'positive-text'}>{message}</p>
+            <p
+              className={
+                status === 'error'
+                  ? 'negative-text exchange-message'
+                  : 'positive-text exchange-message'
+              }
+            >
+              {message}
+            </p>
           )}
         </section>
 
         <section className="workspace-panel exchange-info">
-          <p className="small-label">TODAY'S RATE</p>
+          <p className="small-label">CURRENT RATE</p>
+
           <h2>1 {fromCurrency}</h2>
-          <h3>= {quote ? quote.rate : '...'} {toCurrency}</h3>
-          <p>Rate provided by {quote?.provider ?? '—'}.</p>
+
+          <h3>
+            = {quote ? quote.rate : '...'} {toCurrency}
+          </h3>
+
+          <p>
+            {quote
+              ? `Rate provided by ${quote.provider}.`
+              : 'Loading current market rate...'}
+          </p>
+
+          {quote && (
+            <p>
+              Updated{' '}
+              {new Date(quote.fetchedAt).toLocaleTimeString(
+                [],
+                {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                },
+              )}
+            </p>
+          )}
         </section>
       </div>
     </>

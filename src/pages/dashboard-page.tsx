@@ -17,9 +17,9 @@ import './dashboard-page.css';
 import './dashboard-buy-button.css';
 
 const quickActions = [
-  { icon: 'buy', title: 'Buy currency', subtitle: 'Exchange funds', path: '/exchange' },
+  { icon: 'buy', title: 'Buy currency', subtitle: 'Exchange funds', path: '/exchange?mode=buy' },
   { icon: '✣', title: 'Get cashback', subtitle: 'Earn rewards', path: '/cashback' },
-  { icon: '⇄', title: 'Swap', subtitle: 'Move between wallets', path: '/exchange' },
+  { icon: '⇄', title: 'Swap', subtitle: 'Move between wallets', path: '/exchange?mode=swap' },
   { icon: '▣', title: 'Deposit', subtitle: 'Add money', path: '/wallet' },
 ];
 
@@ -96,7 +96,7 @@ export function DashboardPage() {
   <button
     type="button"
     className="buy-currency-button"
-    onClick={() => navigate('/exchange')}
+    onClick={() => navigate('/exchange?mode=buy')}
   >
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path

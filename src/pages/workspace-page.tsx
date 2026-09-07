@@ -1,3 +1,4 @@
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppIcon } from '../components/ui/app-icon';
 import { useEffect, useState, type FormEvent } from 'react';
 import { WorkspaceSkeleton } from '../components/ui/skeleton-loader';
@@ -76,6 +77,7 @@ function PageTitle({
 type WalletAction = 'deposit' | 'withdraw';
 
 function WalletContent() {
+  const navigate = useNavigate();
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
   const [action, setAction] = useState<WalletAction | null>(null);
   const [currency, setCurrency] = useState('USD');
@@ -169,9 +171,13 @@ function WalletContent() {
             Withdraw
           </button>
 
-          <button type="button" className="primary-action">
-            Swap ⇄
-          </button>
+         <button
+  type="button"
+  className="primary-action"
+  onClick={() => navigate('/exchange?mode=swap')}
+>
+  Swap ⇄
+</button>
         </div>
       </section>
 
@@ -296,7 +302,13 @@ const EXCHANGE_CURRENCIES = ['USD', 'ARS', 'EUR', 'BRL'];
 type ExchangeMode = 'buy' | 'sell' | 'swap';
 
 function ExchangeContent() {
-  const [mode, setMode] = useState<ExchangeMode>('buy');
+  const [searchParams] = useSearchParams();
+const requestedMode = searchParams.get('mode');
+  const [mode, setMode] = useState<ExchangeMode>(
+  requestedMode === 'sell' || requestedMode === 'swap'
+    ? requestedMode
+    : 'buy',
+);
   const [fromCurrency, setFromCurrency] = useState('ARS');
   const [toCurrency, setToCurrency] = useState('USD');
   const [amountToReceive, setAmountToReceive] = useState('100');

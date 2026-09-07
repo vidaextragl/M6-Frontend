@@ -1,3 +1,4 @@
+import { AppIcon } from '../components/ui/app-icon';
 import { DashboardSkeleton } from '../components/ui/skeleton-loader';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +17,7 @@ import './dashboard-page.css';
 import './dashboard-buy-button.css';
 
 const quickActions = [
-  { icon: '↗', title: 'Buy currency', subtitle: 'Exchange funds', path: '/exchange' },
+  { icon: 'buy', title: 'Buy currency', subtitle: 'Exchange funds', path: '/exchange' },
   { icon: '✣', title: 'Get cashback', subtitle: 'Earn rewards', path: '/cashback' },
   { icon: '⇄', title: 'Swap', subtitle: 'Move between wallets', path: '/exchange' },
   { icon: '▣', title: 'Deposit', subtitle: 'Add money', path: '/wallet' },
@@ -229,7 +230,9 @@ export function DashboardPage() {
                 key={action.title}
                 onClick={() => navigate(action.path)}
               >
-                <span>{action.icon}</span>
+                <span>
+  {action.icon === 'buy' ? <AppIcon name="buy" /> : action.icon}
+</span>
 
                 <div>
                   <strong>{action.title}</strong>

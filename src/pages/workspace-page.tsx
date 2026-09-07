@@ -1,3 +1,4 @@
+import { AppIcon } from '../components/ui/app-icon';
 import { useEffect, useState } from 'react';
 import { WorkspaceSkeleton } from '../components/ui/skeleton-loader';
 import { PageLayout } from '../components/layout/page-layout';
@@ -461,7 +462,24 @@ function CashbackContent() {
     </>
   );
 }
+function getRewardIcon(itemName: string) {
+  const name = itemName.toLowerCase();
 
+  if (
+    name.includes('cupón') ||
+    name.includes('cupon') ||
+    name.includes('discount') ||
+    name.includes('off')
+  ) {
+    return 'reward-ticket' as const;
+  }
+
+  if (name.includes('skin')) {
+    return 'reward-gem' as const;
+  }
+
+  return 'reward-game' as const;
+}
 function RewardsContent() {
   const [summary, setSummary] = useState<RewardsSummary | null>(null);
   const [redeeming, setRedeeming] = useState<string | null>(null);
@@ -509,7 +527,9 @@ function RewardsContent() {
       <div className="workspace-three-grid">
         {summary.catalog.map((item) => (
           <article className="reward-card" key={item.id}>
-            <div className="reward-icon">★</div>
+            <div className="reward-icon">
+  <AppIcon name={getRewardIcon(item.name)} />
+</div>
             <h3>{item.name}</h3>
             <p>{item.description ?? 'Unlock this reward using your Extra Points.'}</p>
             <button

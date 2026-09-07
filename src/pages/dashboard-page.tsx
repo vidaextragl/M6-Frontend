@@ -13,6 +13,7 @@ import type {
   WalletSummary,
 } from '../types/wallet.types';
 import './dashboard-page.css';
+import './dashboard-buy-button.css';
 
 const quickActions = [
   { icon: '↗', title: 'Buy currency', subtitle: 'Exchange funds', path: '/exchange' },
@@ -71,24 +72,43 @@ export function DashboardPage() {
 
   return (
     <PageLayout>
-      <section className="welcome">
-        <p className="small-label">
-          {now
-            .toLocaleDateString('en-US', {
-              weekday: 'long',
-              month: 'long',
-              day: 'numeric',
-              year: 'numeric',
-            })
-            .toUpperCase()}
-        </p>
+      <section className="welcome dashboard-welcome">
+  <div>
+    <p className="small-label">
+      {now
+        .toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        })
+        .toUpperCase()}
+    </p>
 
-        <h1>
-          {greeting}, {user?.name}
-        </h1>
+    <h1>
+      {greeting}, {user?.name}
+    </h1>
 
-        <p>Here's your financial snapshot for today.</p>
-      </section>
+    <p>Here's your financial snapshot for today.</p>
+  </div>
+
+  <button
+    type="button"
+    className="buy-currency-button"
+    onClick={() => navigate('/exchange')}
+  >
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M7 17 17 7M9 7h8v8"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+    Buy currency
+  </button>
+</section>
 <ExchangeRatesWidget />
       <div className="top-dashboard-grid">
         <BalanceCard
@@ -132,9 +152,28 @@ export function DashboardPage() {
       <div className="balance-actions">
         <button type="button" onClick={() => navigate('/wallet')}>Deposit</button>
         <button type="button" onClick={() => navigate('/wallet')}>Withdraw</button>
-        <button type="button" className="mint-button" onClick={() => navigate('/exchange')}>
-          Swap ⇄
-        </button>
+      <button
+  type="button"
+  className="mint-button"
+  onClick={() => navigate('/exchange')}
+>
+  <svg
+    width="17"
+    height="17"
+    viewBox="0 0 24 24"
+    fill="none"
+    aria-hidden="true"
+  >
+    <path
+      d="M12 5v14M7 10l5-5 5 5"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+  Buy currency
+</button>
       </div>
 
       

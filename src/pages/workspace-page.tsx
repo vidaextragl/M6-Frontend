@@ -1,5 +1,5 @@
 import { AppIcon } from '../components/ui/app-icon';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { WorkspaceSkeleton } from '../components/ui/skeleton-loader';
 import { PageLayout } from '../components/layout/page-layout';
 import { walletsApi } from '../api/wallets.api';
@@ -10,6 +10,7 @@ import { formatTransactionAmount, getTransactionLabel } from '../utils/transacti
 import type { CashbackSummary, WalletSummary } from '../types/wallet.types';
 import './dashboard-page.css';
 import './exchange-modes.css';
+import './wallet-actions.css';
 
 type WorkspaceType =
   | 'wallet'
@@ -72,12 +73,62 @@ function PageTitle({
   );
 }
 
+type WalletAction = 'deposit' | 'withdraw';
+
 function WalletContent() {
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
+  const [action, setAction] = useState<WalletAction | null>(null);
+  const [currency, setCurrency] = useState('USD');
+  const [amount, setAmount] = useState('');
+  const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  async function loadWallet() {
+    const walletData = await walletsApi.getWallet();
+    setWallet(walletData);
+  }
 
   useEffect(() => {
-    walletsApi.getWallet().then(setWallet);
+    void loadWallet();
   }, []);
+
+  function openAction(nextAction: WalletAction) {
+    setAction(nextAction);
+    setCurrency('USD');
+    setAmount('');
+    setMessage('');
+  }
+
+  async function handleWalletAction(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const numericAmount = Number(amount);
+
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+      setMessage('Enter an amount greater than zero.');
+      return;
+    }
+
+    if (!action) return;
+
+    setSubmitting(true);
+    setMessage('');
+
+    try {
+      await walletsApi[action](currency, amount);
+      await loadWallet();
+      setAction(null);
+      setAmount('');
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : 'The operation could not be completed.',
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   if (!wallet) return null;
 
@@ -92,18 +143,35 @@ function WalletContent() {
       <section className="workspace-hero">
         <div>
           <p className="small-label">TOTAL BALANCE</p>
+
           <h2>
             ${wallet.totalBalance.toFixed(2)} <span>USD</span>
           </h2>
-          <p className={wallet.monthlyChangePercentage >= 0 ? 'positive-text' : 'negative-text'}>
-            {wallet.monthlyChangePercentage >= 0 ? '↗' : '↘'} {wallet.monthlyChangePercentage}% this month
+
+          <p
+            className={
+              wallet.monthlyChangePercentage >= 0
+                ? 'positive-text'
+                : 'negative-text'
+            }
+          >
+            {wallet.monthlyChangePercentage >= 0 ? '↗️' : '↘️'}{' '}
+            {wallet.monthlyChangePercentage}% this month
           </p>
         </div>
 
         <div className="workspace-actions">
-          <button>Deposit</button>
-          <button>Withdraw</button>
-          <button className="primary-action">Swap ⇄</button>
+          <button type="button" onClick={() => openAction('deposit')}>
+            Deposit
+          </button>
+
+          <button type="button" onClick={() => openAction('withdraw')}>
+            Withdraw
+          </button>
+
+          <button type="button" className="primary-action">
+            Swap ⇄
+          </button>
         </div>
       </section>
 
@@ -112,32 +180,117 @@ function WalletContent() {
       </div>
 
       <div className="workspace-currency-grid">
-        {wallet.currencies.map((currency) => (
-          <article className="workspace-currency-card" key={currency.code}>
+        {wallet.currencies.map((walletCurrency) => (
+          <article
+            className="workspace-currency-card"
+            key={walletCurrency.code}
+          >
             <div className="workspace-currency-top">
-              <span>{currency.code[0]}</span>
+              <span>{walletCurrency.code[0]}</span>
+
               <div>
-                <strong>{currency.code}</strong>
-                <p>{currency.name}</p>
+                <strong>{walletCurrency.code}</strong>
+                <p>{walletCurrency.name}</p>
               </div>
             </div>
 
             <h3>
-              {currency.symbol}
-              {currency.balance.toFixed(2)}
+              {walletCurrency.symbol}
+              {walletCurrency.balance.toFixed(2)}
             </h3>
 
-            <p className={currency.changePercentage >= 0 ? 'positive-text' : 'negative-text'}>
-              {currency.changePercentage >= 0 ? '+' : ''}
-              {currency.changePercentage}%
+            <p
+              className={
+                walletCurrency.changePercentage >= 0
+                  ? 'positive-text'
+                  : 'negative-text'
+              }
+            >
+              {walletCurrency.changePercentage >= 0 ? '+' : ''}
+              {walletCurrency.changePercentage}%
             </p>
           </article>
         ))}
       </div>
+
+      {action && (
+        <div className="wallet-modal-backdrop">
+          <section
+            className="wallet-action-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="wallet-action-title"
+          >
+            <div className="wallet-modal-heading">
+              <div>
+                <p className="small-label">WALLET OPERATION</p>
+                <h2 id="wallet-action-title">
+                  {action === 'deposit' ? 'Deposit funds' : 'Withdraw funds'}
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                className="wallet-modal-close"
+                aria-label="Close"
+                onClick={() => setAction(null)}
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleWalletAction}>
+              <label>
+                <span>Currency</span>
+                <select
+                  value={currency}
+                  onChange={(event) => setCurrency(event.target.value)}
+                >
+                  {wallet.currencies.map((walletCurrency) => (
+                    <option
+                      key={walletCurrency.code}
+                      value={walletCurrency.code}
+                    >
+                      {walletCurrency.code} — {walletCurrency.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                <span>Amount</span>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  inputMode="decimal"
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={(event) => setAmount(event.target.value)}
+                  autoFocus
+                />
+              </label>
+
+              {message && <p className="wallet-action-error">{message}</p>}
+
+              <button
+                type="submit"
+                className="wallet-confirm-button"
+                disabled={submitting}
+              >
+                {submitting
+                  ? 'Processing...'
+                  : action === 'deposit'
+                    ? 'Confirm deposit'
+                    : 'Confirm withdrawal'}
+              </button>
+            </form>
+          </section>
+        </div>
+      )}
     </>
   );
 }
-
 const EXCHANGE_CURRENCIES = ['USD', 'ARS', 'EUR', 'BRL'];
 
 type ExchangeMode = 'buy' | 'sell' | 'swap';

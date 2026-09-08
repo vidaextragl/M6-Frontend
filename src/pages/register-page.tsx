@@ -125,7 +125,7 @@ export function RegisterPage() {
 
     try {
       await register({ name, email, password })
-      navigate('/dashboard')
+      navigate('/dashboard', { replace: true })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Ocurrió un error al registrarte'
       setError(message)

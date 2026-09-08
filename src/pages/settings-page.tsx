@@ -9,7 +9,7 @@ function getSavedPreference(key: string) {
 }
 
 export function SettingsPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
 
   const [editing, setEditing] = useState(false);
   const [message, setMessage] = useState('');
@@ -57,6 +57,7 @@ export function SettingsPage() {
 
     try {
       await usersApi.updateProfile({ name: fullName });
+      await refreshUser();
       localStorage.setItem('vida-extra:profile-name', fullName);
       setEditing(false);
       showMessage('Profile saved successfully.');

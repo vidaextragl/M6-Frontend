@@ -91,8 +91,8 @@ function WalletContent() {
   }
 
   useEffect(() => {
-    void loadWallet();
-  }, []);
+  walletsApi.getWallet().then(setWallet);
+}, []);
 
   function openAction(nextAction: WalletAction) {
     setAction(nextAction);
@@ -321,10 +321,11 @@ const requestedMode = searchParams.get('mode');
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (fromCurrency === toCurrency) {
-      setQuote(null);
-      return;
-    }
+   if (fromCurrency === toCurrency) {
+  const timer = window.setTimeout(() => setQuote(null), 0);
+
+  return () => window.clearTimeout(timer);
+}
 
     exchangeApi
       .getRate(fromCurrency, toCurrency)

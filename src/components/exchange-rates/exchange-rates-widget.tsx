@@ -94,13 +94,14 @@ export function ExchangeRatesWidget() {
   useEffect(() => {
     let cancelled = false;
 
-    setLoading(true);
-    setError('');
 
     exchangeApi
       .getRate(fromCurrency, toCurrency)
       .then((data) => {
-        if (!cancelled) setQuote(data);
+        if (!cancelled) {
+  setQuote(data);
+  setError('');
+}
       })
       .catch((err) => {
         if (!cancelled) {

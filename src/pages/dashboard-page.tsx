@@ -1,9 +1,11 @@
+import { AppIcon } from '../components/ui/app-icon';
 import { DashboardSkeleton } from '../components/ui/skeleton-loader';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { walletsApi, transactionsApi } from '../api';
 import type { Transaction } from '../api/transactions.api';
 import { PageLayout } from '../components/layout/page-layout';
+import { ExchangeRatesWidget } from '../components/exchange-rates/exchange-rates-widget';
 import { BalanceCard, BalanceSummaryList } from '../components/wallet';
 import { useAuth } from '../hooks/use-auth';
 import { formatTransactionAmount, getTransactionLabel } from '../utils/transactions.utils';
@@ -12,12 +14,33 @@ import type {
   WalletSummary,
 } from '../types/wallet.types';
 import './dashboard-page.css';
+import './dashboard-buy-button.css';
 
 const quickActions = [
-  { icon: '↗', title: 'Buy currency', subtitle: 'Exchange funds', path: '/exchange' },
-  { icon: '✣', title: 'Get cashback', subtitle: 'Earn rewards', path: '/cashback' },
-  { icon: '⇄', title: 'Swap', subtitle: 'Move between wallets', path: '/exchange' },
-  { icon: '▣', title: 'Deposit', subtitle: 'Add money', path: '/wallet' },
+  {
+    icon: <AppIcon name="buy" />,
+    title: 'Buy currency',
+    subtitle: 'Exchange funds',
+    path: '/exchange?mode=buy',
+  },
+  {
+    icon: <AppIcon name="cashback" />,
+    title: 'Get cashback',
+    subtitle: 'Earn rewards',
+    path: '/cashback',
+  },
+  {
+    icon: '⇄',
+    title: 'Swap',
+    subtitle: 'Move between wallets',
+    path: '/exchange?mode=swap',
+  },
+  {
+    icon: <AppIcon name="deposit" />,
+    title: 'Deposit',
+    subtitle: 'Add money',
+    path: '/wallet',
+  },
 ];
 
 export function DashboardPage() {
@@ -70,25 +93,44 @@ export function DashboardPage() {
 
   return (
     <PageLayout>
-      <section className="welcome">
-        <p className="small-label">
-          {now
-            .toLocaleDateString('en-US', {
-              weekday: 'long',
-              month: 'long',
-              day: 'numeric',
-              year: 'numeric',
-            })
-            .toUpperCase()}
-        </p>
+      <section className="welcome dashboard-welcome">
+  <div>
+    <p className="small-label">
+      {now
+        .toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        })
+        .toUpperCase()}
+    </p>
 
-        <h1>
-          {greeting}, {user?.name}
-        </h1>
+    <h1>
+      {greeting}, {user?.name}
+    </h1>
 
-        <p>Here's your financial snapshot for today.</p>
-      </section>
+    <p>Here's your financial snapshot for today.</p>
+  </div>
 
+  <button
+    type="button"
+    className="buy-currency-button"
+    onClick={() => navigate('/exchange?mode=buy')}
+  >
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M7 17 17 7M9 7h8v8"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+    Buy currency
+  </button>
+</section>
+<ExchangeRatesWidget />
       <div className="top-dashboard-grid">
         <BalanceCard
           totalBalance={wallet.totalBalance}
@@ -97,7 +139,9 @@ export function DashboardPage() {
         />
 
         <article className="cashback-card dashboard-card">
-          <div className="cashback-symbol">✣</div>
+          <div className="cashback-symbol">
+  <AppIcon name="cashback" />
+</div>
 
           <p className="small-label">CASHBACK AVAILABLE</p>
 
@@ -131,10 +175,31 @@ export function DashboardPage() {
       <div className="balance-actions">
         <button type="button" onClick={() => navigate('/wallet')}>Deposit</button>
         <button type="button" onClick={() => navigate('/wallet')}>Withdraw</button>
-        <button type="button" className="mint-button" onClick={() => navigate('/exchange')}>
-          Swap ⇄
-        </button>
+      <button
+  type="button"
+  className="mint-button"
+  onClick={() => navigate('/exchange')}
+>
+  <svg
+    width="17"
+    height="17"
+    viewBox="0 0 24 24"
+    fill="none"
+    aria-hidden="true"
+  >
+    <path
+      d="M12 5v14M7 10l5-5 5 5"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+  Buy currency
+</button>
       </div>
+
+      
 
       <BalanceSummaryList currencies={wallet.currencies} />
 
@@ -187,7 +252,7 @@ export function DashboardPage() {
                 key={action.title}
                 onClick={() => navigate(action.path)}
               >
-                <span>{action.icon}</span>
+              <span>{action.icon}</span>
 
                 <div>
                   <strong>{action.title}</strong>

@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { AppIcon } from '../components/ui/app-icon';
+import { useEffect, useState, type FormEvent } from 'react';
 import { WorkspaceSkeleton } from '../components/ui/skeleton-loader';
 import { PageLayout } from '../components/layout/page-layout';
 import { walletsApi } from '../api/wallets.api';
@@ -8,6 +10,8 @@ import { transactionsApi, type Transaction } from '../api/transactions.api';
 import { formatTransactionAmount, getTransactionLabel } from '../utils/transactions.utils';
 import type { CashbackSummary, WalletSummary } from '../types/wallet.types';
 import './dashboard-page.css';
+import './exchange-modes.css';
+import './wallet-actions.css';
 
 type WorkspaceType =
   | 'wallet'
@@ -70,12 +74,63 @@ function PageTitle({
   );
 }
 
+type WalletAction = 'deposit' | 'withdraw';
+
 function WalletContent() {
+  const navigate = useNavigate();
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
+  const [action, setAction] = useState<WalletAction | null>(null);
+  const [currency, setCurrency] = useState('USD');
+  const [amount, setAmount] = useState('');
+  const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  async function loadWallet() {
+    const walletData = await walletsApi.getWallet();
+    setWallet(walletData);
+  }
 
   useEffect(() => {
-    walletsApi.getWallet().then(setWallet);
-  }, []);
+  walletsApi.getWallet().then(setWallet);
+}, []);
+
+  function openAction(nextAction: WalletAction) {
+    setAction(nextAction);
+    setCurrency('USD');
+    setAmount('');
+    setMessage('');
+  }
+
+  async function handleWalletAction(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const numericAmount = Number(amount);
+
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+      setMessage('Enter an amount greater than zero.');
+      return;
+    }
+
+    if (!action) return;
+
+    setSubmitting(true);
+    setMessage('');
+
+    try {
+      await walletsApi[action](currency, amount);
+      await loadWallet();
+      setAction(null);
+      setAmount('');
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : 'The operation could not be completed.',
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   if (!wallet) return null;
 
@@ -90,18 +145,39 @@ function WalletContent() {
       <section className="workspace-hero">
         <div>
           <p className="small-label">TOTAL BALANCE</p>
+
           <h2>
             ${wallet.totalBalance.toFixed(2)} <span>USD</span>
           </h2>
-          <p className={wallet.monthlyChangePercentage >= 0 ? 'positive-text' : 'negative-text'}>
-            {wallet.monthlyChangePercentage >= 0 ? '↗' : '↘'} {wallet.monthlyChangePercentage}% this month
+
+          <p
+            className={
+              wallet.monthlyChangePercentage >= 0
+                ? 'positive-text'
+                : 'negative-text'
+            }
+          >
+            {wallet.monthlyChangePercentage >= 0 ? '+' : ''}
+{wallet.monthlyChangePercentage}% this month
           </p>
         </div>
 
         <div className="workspace-actions">
-          <button>Deposit</button>
-          <button>Withdraw</button>
-          <button className="primary-action">Swap ⇄</button>
+          <button type="button" onClick={() => openAction('deposit')}>
+            Deposit
+          </button>
+
+          <button type="button" onClick={() => openAction('withdraw')}>
+            Withdraw
+          </button>
+
+         <button
+  type="button"
+  className="primary-action"
+  onClick={() => navigate('/exchange?mode=swap')}
+>
+  Swap ⇄
+</button>
         </div>
       </section>
 
@@ -110,90 +186,324 @@ function WalletContent() {
       </div>
 
       <div className="workspace-currency-grid">
-        {wallet.currencies.map((currency) => (
-          <article className="workspace-currency-card" key={currency.code}>
+        {wallet.currencies.map((walletCurrency) => (
+          <article
+            className="workspace-currency-card"
+            key={walletCurrency.code}
+          >
             <div className="workspace-currency-top">
-              <span>{currency.code[0]}</span>
+              <span>{walletCurrency.code[0]}</span>
+
               <div>
-                <strong>{currency.code}</strong>
-                <p>{currency.name}</p>
+                <strong>{walletCurrency.code}</strong>
+                <p>{walletCurrency.name}</p>
               </div>
             </div>
 
             <h3>
-              {currency.symbol}
-              {currency.balance.toFixed(2)}
+              {walletCurrency.symbol}
+              {walletCurrency.balance.toFixed(2)}
             </h3>
 
-            <p className={currency.changePercentage >= 0 ? 'positive-text' : 'negative-text'}>
-              {currency.changePercentage >= 0 ? '+' : ''}
-              {currency.changePercentage}%
+            <p
+              className={
+                walletCurrency.changePercentage >= 0
+                  ? 'positive-text'
+                  : 'negative-text'
+              }
+            >
+              {walletCurrency.changePercentage >= 0 ? '+' : ''}
+              {walletCurrency.changePercentage}%
             </p>
           </article>
         ))}
       </div>
+
+      {action && (
+        <div className="wallet-modal-backdrop">
+          <section
+            className="wallet-action-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="wallet-action-title"
+          >
+            <div className="wallet-modal-heading">
+              <div>
+                <p className="small-label">WALLET OPERATION</p>
+                <h2 id="wallet-action-title">
+                  {action === 'deposit' ? 'Deposit funds' : 'Withdraw funds'}
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                className="wallet-modal-close"
+                aria-label="Close"
+                onClick={() => setAction(null)}
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleWalletAction}>
+              <label>
+                <span>Currency</span>
+                <select
+                  value={currency}
+                  onChange={(event) => setCurrency(event.target.value)}
+                >
+                  {wallet.currencies.map((walletCurrency) => (
+                    <option
+                      key={walletCurrency.code}
+                      value={walletCurrency.code}
+                    >
+                      {walletCurrency.code} — {walletCurrency.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                <span>Amount</span>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  inputMode="decimal"
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={(event) => setAmount(event.target.value)}
+                  autoFocus
+                />
+              </label>
+
+              {message && <p className="wallet-action-error">{message}</p>}
+
+              <button
+                type="submit"
+                className="wallet-confirm-button"
+                disabled={submitting}
+              >
+                {submitting
+                  ? 'Processing...'
+                  : action === 'deposit'
+                    ? 'Confirm deposit'
+                    : 'Confirm withdrawal'}
+              </button>
+            </form>
+          </section>
+        </div>
+      )}
     </>
   );
 }
-
 const EXCHANGE_CURRENCIES = ['USD', 'ARS', 'EUR', 'BRL'];
 
+type ExchangeMode = 'buy' | 'sell' | 'swap';
+
 function ExchangeContent() {
-  const [fromCurrency, setFromCurrency] = useState('USD');
-  const [toCurrency, setToCurrency] = useState('EUR');
+  const [searchParams] = useSearchParams();
+const requestedMode = searchParams.get('mode');
+  const [mode, setMode] = useState<ExchangeMode>(
+  requestedMode === 'sell' || requestedMode === 'swap'
+    ? requestedMode
+    : 'buy',
+);
+  const [fromCurrency, setFromCurrency] = useState('ARS');
+  const [toCurrency, setToCurrency] = useState('USD');
   const [amountToReceive, setAmountToReceive] = useState('100');
-  const [quote, setQuote] = useState<ExchangeRateQuote | null>(null);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>('idle');
+  const [quote, setQuote] =
+    useState<ExchangeRateQuote | null>(null);
+  const [status, setStatus] =
+    useState<'idle' | 'loading' | 'error' | 'success'>(
+      'idle',
+    );
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (fromCurrency === toCurrency) return;
-    exchangeApi.getRate(fromCurrency, toCurrency).then(setQuote).catch(() => setQuote(null));
+   if (fromCurrency === toCurrency) {
+  const timer = window.setTimeout(() => setQuote(null), 0);
+
+  return () => window.clearTimeout(timer);
+}
+
+    exchangeApi
+      .getRate(fromCurrency, toCurrency)
+      .then(setQuote)
+      .catch(() => setQuote(null));
   }, [fromCurrency, toCurrency]);
 
+  const amountToPay =
+    quote && Number(amountToReceive) > 0
+      ? Number(amountToReceive) / quote.rate
+      : 0;
+
+  function selectMode(nextMode: ExchangeMode) {
+    setMode(nextMode);
+    setMessage('');
+    setStatus('idle');
+
+    if (nextMode === 'buy') {
+      setFromCurrency('ARS');
+      setToCurrency('USD');
+    }
+
+    if (nextMode === 'sell') {
+      setFromCurrency('USD');
+      setToCurrency('ARS');
+    }
+  }
+
+  function reverseCurrencies() {
+    setFromCurrency(toCurrency);
+    setToCurrency(fromCurrency);
+    setMessage('');
+  }
+
   async function handleExchange() {
+    if (
+      fromCurrency === toCurrency ||
+      Number(amountToReceive) <= 0
+    ) {
+      setStatus('error');
+      setMessage('Enter a valid amount and two different currencies.');
+      return;
+    }
+
     setStatus('loading');
+    setMessage('');
+
     try {
-      await exchangeApi.swap(fromCurrency, toCurrency, amountToReceive);
+      await exchangeApi.swap(
+        fromCurrency,
+        toCurrency,
+        amountToReceive,
+      );
+
       setStatus('success');
       setMessage('Exchange completed successfully.');
     } catch (err) {
       setStatus('error');
-      setMessage(err instanceof Error ? err.message : 'Exchange failed.');
+      setMessage(
+        err instanceof Error
+          ? err.message
+          : 'Exchange failed.',
+      );
     }
   }
+
+  const actionLabel =
+    mode === 'buy'
+      ? `Buy ${toCurrency}`
+      : mode === 'sell'
+        ? `Sell ${fromCurrency}`
+        : `Swap to ${toCurrency}`;
 
   return (
     <>
       <PageTitle
         eyebrow="EXCHANGE"
-        title="Exchange currencies"
-        description="Convert between your available currencies instantly."
+        title={
+          mode === 'buy'
+            ? 'Buy currency'
+            : mode === 'sell'
+              ? 'Sell currency'
+              : 'Swap currencies'
+        }
+        description="Exchange your money using current market rates."
       />
+
+      <div className="exchange-mode-tabs">
+        <button
+          type="button"
+          className={mode === 'buy' ? 'active' : ''}
+          onClick={() => selectMode('buy')}
+        >
+          Buy
+        </button>
+
+        <button
+          type="button"
+          className={mode === 'sell' ? 'active' : ''}
+          onClick={() => selectMode('sell')}
+        >
+          Sell
+        </button>
+
+        <button
+          type="button"
+          className={mode === 'swap' ? 'active' : ''}
+          onClick={() => selectMode('swap')}
+        >
+          Swap
+        </button>
+      </div>
 
       <div className="exchange-layout">
         <section className="workspace-panel exchange-box">
-          <p className="small-label">YOU SEND</p>
+          <p className="small-label">YOU PAY</p>
 
           <div className="exchange-input">
-            <select value={fromCurrency} onChange={(e) => setFromCurrency(e.target.value)}>
+            <input
+              value={
+                quote && amountToPay > 0
+                  ? amountToPay.toFixed(2)
+                  : ''
+              }
+              readOnly
+              aria-label="Amount to pay"
+            />
+
+            <select
+              value={fromCurrency}
+              onChange={(event) =>
+                setFromCurrency(event.target.value)
+              }
+              aria-label="Currency to pay"
+            >
               {EXCHANGE_CURRENCIES.map((code) => (
                 <option key={code}>{code}</option>
               ))}
             </select>
           </div>
 
-          <div className="exchange-divider">⇅</div>
+          <button
+            type="button"
+            className="exchange-reverse-button"
+            onClick={reverseCurrencies}
+            aria-label="Reverse currencies"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M7 7h11m0 0-3-3m3 3-3 3M17 17H6m0 0 3 3m-3-3 3-3"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.8"
+              />
+            </svg>
+          </button>
 
           <p className="small-label">YOU RECEIVE</p>
 
           <div className="exchange-input">
             <input
               value={amountToReceive}
-              onChange={(e) => setAmountToReceive(e.target.value)}
+              onChange={(event) =>
+                setAmountToReceive(event.target.value)
+              }
               inputMode="decimal"
+              aria-label="Amount to receive"
             />
-            <select value={toCurrency} onChange={(e) => setToCurrency(e.target.value)}>
+
+            <select
+              value={toCurrency}
+              onChange={(event) =>
+                setToCurrency(event.target.value)
+              }
+              aria-label="Currency to receive"
+            >
               {EXCHANGE_CURRENCIES.map((code) => (
                 <option key={code}>{code}</option>
               ))}
@@ -201,32 +511,77 @@ function ExchangeContent() {
           </div>
 
           {quote && (
-            <div className="exchange-rate">
-              <span>Exchange rate</span>
-              <strong>
-                1 {fromCurrency} = {quote.rate} {toCurrency}
-              </strong>
-            </div>
+            <>
+              <div className="exchange-rate">
+                <span>Exchange rate</span>
+
+                <strong>
+                  1 {fromCurrency} = {quote.rate}{' '}
+                  {toCurrency}
+                </strong>
+              </div>
+
+              <div className="exchange-rate">
+                <span>Rate provider</span>
+                <strong>{quote.provider}</strong>
+              </div>
+            </>
           )}
 
           <button
+            type="button"
             className="workspace-main-button"
             onClick={handleExchange}
-            disabled={status === 'loading' || fromCurrency === toCurrency}
+            disabled={
+              status === 'loading' ||
+              fromCurrency === toCurrency
+            }
           >
-            {status === 'loading' ? 'Processing...' : 'Confirm exchange'}
+            {status === 'loading'
+              ? 'Processing...'
+              : actionLabel}
           </button>
 
           {message && (
-            <p className={status === 'error' ? 'negative-text' : 'positive-text'}>{message}</p>
+            <p
+              className={
+                status === 'error'
+                  ? 'negative-text exchange-message'
+                  : 'positive-text exchange-message'
+              }
+            >
+              {message}
+            </p>
           )}
         </section>
 
         <section className="workspace-panel exchange-info">
-          <p className="small-label">TODAY'S RATE</p>
+          <p className="small-label">CURRENT RATE</p>
+
           <h2>1 {fromCurrency}</h2>
-          <h3>= {quote ? quote.rate : '...'} {toCurrency}</h3>
-          <p>Rate provided by {quote?.provider ?? '—'}.</p>
+
+          <h3>
+            = {quote ? quote.rate : '...'} {toCurrency}
+          </h3>
+
+          <p>
+            {quote
+              ? `Rate provided by ${quote.provider}.`
+              : 'Loading current market rate...'}
+          </p>
+
+          {quote && (
+            <p>
+              Updated{' '}
+              {new Date(quote.fetchedAt).toLocaleTimeString(
+                [],
+                {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                },
+              )}
+            </p>
+          )}
         </section>
       </div>
     </>
@@ -273,7 +628,24 @@ function CashbackContent() {
     </>
   );
 }
+function getRewardIcon(itemName: string) {
+  const name = itemName.toLowerCase();
 
+  if (
+    name.includes('cupón') ||
+    name.includes('cupon') ||
+    name.includes('discount') ||
+    name.includes('off')
+  ) {
+    return 'reward-ticket' as const;
+  }
+
+  if (name.includes('skin')) {
+    return 'reward-gem' as const;
+  }
+
+  return 'reward-game' as const;
+}
 function RewardsContent() {
   const [summary, setSummary] = useState<RewardsSummary | null>(null);
   const [redeeming, setRedeeming] = useState<string | null>(null);
@@ -321,7 +693,9 @@ function RewardsContent() {
       <div className="workspace-three-grid">
         {summary.catalog.map((item) => (
           <article className="reward-card" key={item.id}>
-            <div className="reward-icon">★</div>
+            <div className="reward-icon">
+  <AppIcon name={getRewardIcon(item.name)} />
+</div>
             <h3>{item.name}</h3>
             <p>{item.description ?? 'Unlock this reward using your Extra Points.'}</p>
             <button

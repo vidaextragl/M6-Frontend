@@ -1,3 +1,4 @@
+import { AppIcon } from '../../ui/app-icon';
 import { useMemo, useState, type FormEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/use-auth';
@@ -110,7 +111,7 @@ export function Navbar({ onOpenMenu }: NavbarProps) {
           role="search"
           onSubmit={submitSearch}
         >
-          <span aria-hidden="true">⌕</span>
+          <span aria-hidden="true"><AppIcon name="search" /></span>
 
           <input
             type="search"
@@ -129,7 +130,7 @@ export function Navbar({ onOpenMenu }: NavbarProps) {
           aria-label="Abrir buscador"
           onClick={() => setMobileSearchOpen((isOpen) => !isOpen)}
         >
-          ⌕
+          <AppIcon name="search" />
         </button>
 
         <button
@@ -143,7 +144,7 @@ export function Navbar({ onOpenMenu }: NavbarProps) {
           title={theme === 'light' ? 'Modo claro' : 'Modo oscuro'}
           onClick={toggleTheme}
         >
-          {theme === 'light' ? '☀️' : '🌙'}
+          <AppIcon name={theme === 'light' ? 'moon' : 'sun'} />
         </button>
 
         <button
@@ -152,7 +153,7 @@ export function Navbar({ onOpenMenu }: NavbarProps) {
   aria-label="Notifications"
   onClick={() => navigate('/notifications')}
 >
-  🔔
+  <AppIcon name="bell" />
 </button>
 
         <div className="navbar-profile">

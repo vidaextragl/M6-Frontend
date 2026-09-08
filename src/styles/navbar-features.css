@@ -94,3 +94,42 @@
     top: 56px;
   }
 }
+.navbar-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-icon svg {
+  width: 21px;
+  height: 21px;
+  display: block;
+  color: currentColor;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.navbar-icon[aria-label='Notifications']::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #77e6a1;
+  border: 1px solid var(--background, #16171c);
+}
+.search-box > svg {
+  width: 19px;
+  height: 19px;
+  min-width: 19px;
+  display: block;
+}
+
+.mobile-search-button svg {
+  width: 21px;
+  height: 21px;
+}

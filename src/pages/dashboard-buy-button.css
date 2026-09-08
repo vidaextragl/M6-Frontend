@@ -1,0 +1,53 @@
+.dashboard-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.buy-currency-button {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #27a9c8, #237fbb);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(35, 127, 187, 0.25);
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
+}
+
+.buy-currency-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.buy-currency-button:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.buy-currency-button:focus-visible {
+  outline: 3px solid rgba(39, 169, 200, 0.35);
+  outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .dashboard-welcome {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .buy-currency-button {
+    width: 100%;
+  }
+}

@@ -88,7 +88,7 @@ export function LoginPage() {
 
     try {
       await login({ email, password })
-      navigate('/dashboard')
+      navigate('/dashboard', { replace: true })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Ocurrió un error al iniciar sesión'
       setError(message)

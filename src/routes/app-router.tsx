@@ -11,16 +11,37 @@ import { NotificationsPage } from '../pages/notifications-page';
 import { SettingsPage } from '../pages/settings-page';
 import { WorkspacePage } from '../pages/workspace-page';
 import { ProtectedRoute } from './protected-route';
+import { GuestRoute } from './guest-route';
+
 function PrivatePage({ children }: { children: ReactNode }) {
   return <ProtectedRoute>{children}</ProtectedRoute>;
 }
+
+function PublicOnlyPage({ children }: { children: ReactNode }) {
+  return <GuestRoute>{children}</GuestRoute>;
+}
+
 export function AppRouter() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/login"
+            element={
+              <PublicOnlyPage>
+                <LoginPage />
+              </PublicOnlyPage>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PublicOnlyPage>
+                <RegisterPage />
+              </PublicOnlyPage>
+            }
+          />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route

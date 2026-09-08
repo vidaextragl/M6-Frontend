@@ -157,8 +157,8 @@ function WalletContent() {
                 : 'negative-text'
             }
           >
-            {wallet.monthlyChangePercentage >= 0 ? '↗️' : '↘️'}{' '}
-            {wallet.monthlyChangePercentage}% this month
+            {wallet.monthlyChangePercentage >= 0 ? '+' : ''}
+{wallet.monthlyChangePercentage}% this month
           </p>
         </div>
 

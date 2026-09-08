@@ -17,10 +17,30 @@ import './dashboard-page.css';
 import './dashboard-buy-button.css';
 
 const quickActions = [
-  { icon: 'buy', title: 'Buy currency', subtitle: 'Exchange funds', path: '/exchange?mode=buy' },
-  { icon: '✣', title: 'Get cashback', subtitle: 'Earn rewards', path: '/cashback' },
-  { icon: '⇄', title: 'Swap', subtitle: 'Move between wallets', path: '/exchange?mode=swap' },
-  { icon: '▣', title: 'Deposit', subtitle: 'Add money', path: '/wallet' },
+  {
+    icon: <AppIcon name="buy" />,
+    title: 'Buy currency',
+    subtitle: 'Exchange funds',
+    path: '/exchange?mode=buy',
+  },
+  {
+    icon: <AppIcon name="cashback" />,
+    title: 'Get cashback',
+    subtitle: 'Earn rewards',
+    path: '/cashback',
+  },
+  {
+    icon: '⇄',
+    title: 'Swap',
+    subtitle: 'Move between wallets',
+    path: '/exchange?mode=swap',
+  },
+  {
+    icon: <AppIcon name="deposit" />,
+    title: 'Deposit',
+    subtitle: 'Add money',
+    path: '/wallet',
+  },
 ];
 
 export function DashboardPage() {
@@ -119,7 +139,9 @@ export function DashboardPage() {
         />
 
         <article className="cashback-card dashboard-card">
-          <div className="cashback-symbol">✣</div>
+          <div className="cashback-symbol">
+  <AppIcon name="cashback" />
+</div>
 
           <p className="small-label">CASHBACK AVAILABLE</p>
 
@@ -230,9 +252,7 @@ export function DashboardPage() {
                 key={action.title}
                 onClick={() => navigate(action.path)}
               >
-                <span>
-  {action.icon === 'buy' ? <AppIcon name="buy" /> : action.icon}
-</span>
+              <span>{action.icon}</span>
 
                 <div>
                   <strong>{action.title}</strong>

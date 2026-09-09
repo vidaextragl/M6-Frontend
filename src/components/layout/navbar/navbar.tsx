@@ -155,15 +155,20 @@ export function Navbar({ onOpenMenu }: NavbarProps) {
 >
   <AppIcon name="bell" />
 </button>
+<button
+  type="button"
+  className="navbar-profile"
+  aria-label="Abrir perfil"
+  title="Ver perfil"
+  onClick={() => navigate('/settings')}
+>
+  <div className="user-avatar">{initials}</div>
 
-        <div className="navbar-profile">
-          <div className="user-avatar">{initials}</div>
-
-          <div className="navbar-user-name">
-            <strong>{user?.name}</strong>
-            <span>Personal account</span>
-          </div>
-        </div>
+  <div className="navbar-user-name">
+    <strong>{user?.name}</strong>
+    <span>Personal account</span>
+  </div>
+</button>
 
         <button
           type="button"

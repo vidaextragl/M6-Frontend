@@ -1,25 +1,27 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import {
-  normalizeChatMessage,
-  readChatbotReply,
-} from '../../../src/components/chatbot/chatbot.utils.ts';
+import { describe, it, expect } from 'vitest'
+import { normalizeChatMessage, readChatbotReply } from '../../../src/components/chatbot/chatbot.utils'
 
-test('normaliza una consulta y bloquea contenido vacío', () => {
-  assert.equal(normalizeChatMessage('  Consultar mi saldo  '), 'Consultar mi saldo');
-  assert.equal(normalizeChatMessage('   '), '');
-});
+describe('normalizeChatMessage', () => {
+  it('normaliza una consulta y bloquea contenido vacío', () => {
+    expect(normalizeChatMessage('  Consultar mi saldo  ')).toBe('Consultar mi saldo')
+    expect(normalizeChatMessage('   ')).toBe('')
+  })
 
-test('limita la consulta al máximo aceptado por el backend', () => {
-  assert.equal(normalizeChatMessage('a'.repeat(520)).length, 500);
-});
+  it('limita la consulta al máximo aceptado por el backend', () => {
+    expect(normalizeChatMessage('a'.repeat(520)).length).toBe(500)
+  })
+})
 
-test('acepta una respuesta válida del chatbot', () => {
-  assert.equal(readChatbotReply({ reply: '  Tu saldo está disponible.  ' }), 'Tu saldo está disponible.');
-});
+describe('readChatbotReply', () => {
+  it('acepta una respuesta válida del chatbot', () => {
+    expect(readChatbotReply({ reply: '  Tu saldo está disponible.  ' })).toBe(
+      'Tu saldo está disponible.',
+    )
+  })
 
-test('rechaza respuestas vacías o con contrato inválido', () => {
-  assert.equal(readChatbotReply({ reply: '' }), null);
-  assert.equal(readChatbotReply({ message: 'sin reply' }), null);
-  assert.equal(readChatbotReply(null), null);
-});
+  it('rechaza respuestas vacías o con contrato inválido', () => {
+    expect(readChatbotReply({ reply: '' })).toBeNull()
+    expect(readChatbotReply({ message: 'sin reply' })).toBeNull()
+    expect(readChatbotReply(null)).toBeNull()
+  })
+})

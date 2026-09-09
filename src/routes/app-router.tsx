@@ -12,6 +12,7 @@ import { SettingsPage } from '../pages/settings-page';
 import { WorkspacePage } from '../pages/workspace-page';
 import { ProtectedRoute } from './protected-route';
 import { GuestRoute } from './guest-route';
+import { Chatbot } from '../components/chatbot';
 
 function PrivatePage({ children }: { children: ReactNode }) {
   return <ProtectedRoute>{children}</ProtectedRoute>;
@@ -119,6 +120,7 @@ export function AppRouter() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
+        <Chatbot />
       </AuthProvider>
     </BrowserRouter>
   );

@@ -133,3 +133,22 @@
   width: 21px;
   height: 21px;
 }
+button.navbar-profile {
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.navbar-profile:hover {
+  background: var(--mint-soft);
+}
+
+button.navbar-profile:focus-visible {
+  outline: 2px solid var(--mint);
+  outline-offset: 2px;
+}

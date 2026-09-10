@@ -276,11 +276,21 @@ button {
   justify-content: space-between;
 }
 
+/* min-width: 0 es necesario para que un flex item pueda achicarse por debajo del ancho de su
+   contenido — sin esto, un balance con muchos dígitos empuja la tarjeta entera y el número se
+   corta contra el borde en vez de bajar de línea. */
+.balance-info {
+  min-width: 0;
+  flex: 1;
+}
+
 .balance-header h2 {
   margin: 6px 0;
   color: white;
   font-size: 31px;
   letter-spacing: -1px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .balance-header h2 span {
@@ -829,6 +839,8 @@ button {
   margin: 7px 0 5px;
   color: white;
   font-size: 31px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .workspace-hero h2 span {
@@ -955,6 +967,23 @@ button {
   background: var(--panel-light);
   color: white;
   padding: 0 10px;
+}
+
+/* El campo "you pay" se calcula solo a partir de "you receive" — se ve distinto (atenuado, cursor
+   not-allowed) para que quede claro que no se puede tipear ahí. */
+.exchange-input input:read-only {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.exchange-input:has(input:read-only) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.exchange-input-hint {
+  margin: 6px 0 8px;
+  color: var(--muted);
+  font-size: 11px;
 }
 
 .exchange-divider {

@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { AppIcon } from '../components/ui/app-icon';
 import { useEffect, useState, type FormEvent } from 'react';
 import { WorkspaceSkeleton } from '../components/ui/skeleton-loader';
@@ -8,6 +8,7 @@ import { exchangeApi, type ExchangeRateQuote } from '../api/exchange.api';
 import { rewardsApi, type RewardsSummary } from '../api/rewards.api';
 import { transactionsApi, type Transaction } from '../api/transactions.api';
 import { formatTransactionAmount, getTransactionLabel } from '../utils/transactions.utils';
+import { getAmountValidationError } from '../utils/validators.utils';
 import type { CashbackSummary, WalletSummary } from '../types/wallet.types';
 import './dashboard-page.css';
 import './exchange-modes.css';
@@ -18,7 +19,6 @@ type WorkspaceType =
   | 'exchange'
   | 'cashback'
   | 'rewards'
-  | 'drops'
   | 'transactions';
 
 interface WorkspacePageProps {
@@ -50,7 +50,6 @@ export function WorkspacePage({ type }: WorkspacePageProps) {
       {type === 'exchange' && <ExchangeContent />}
       {type === 'cashback' && <CashbackContent />}
       {type === 'rewards' && <RewardsContent />}
-      {type === 'drops' && <DropsContent />}
       {type === 'transactions' && <TransactionsContent />}
     </PageLayout>
   );
@@ -104,10 +103,10 @@ function WalletContent() {
   async function handleWalletAction(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const numericAmount = Number(amount);
+    const amountError = getAmountValidationError(amount);
 
-    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
-      setMessage('Enter an amount greater than zero.');
+    if (amountError) {
+      setMessage(amountError);
       return;
     }
 
@@ -143,7 +142,7 @@ function WalletContent() {
       />
 
       <section className="workspace-hero">
-        <div>
+        <div className="balance-info">
           <p className="small-label">TOTAL BALANCE</p>
 
           <h2>
@@ -174,7 +173,7 @@ function WalletContent() {
          <button
   type="button"
   className="primary-action"
-  onClick={() => navigate('/exchange?mode=swap')}
+  onClick={() => navigate('/exchange')}
 >
   Swap ⇄
 </button>
@@ -297,18 +296,9 @@ function WalletContent() {
     </>
   );
 }
-const EXCHANGE_CURRENCIES = ['USD', 'ARS', 'EUR', 'BRL'];
-
-type ExchangeMode = 'buy' | 'sell' | 'swap';
+const EXCHANGE_CURRENCIES = ['USD', 'EUR', 'ARS', 'CLP', 'COP', 'BRL'];
 
 function ExchangeContent() {
-  const [searchParams] = useSearchParams();
-const requestedMode = searchParams.get('mode');
-  const [mode, setMode] = useState<ExchangeMode>(
-  requestedMode === 'sell' || requestedMode === 'swap'
-    ? requestedMode
-    : 'buy',
-);
   const [fromCurrency, setFromCurrency] = useState('ARS');
   const [toCurrency, setToCurrency] = useState('USD');
   const [amountToReceive, setAmountToReceive] = useState('100');
@@ -338,22 +328,6 @@ const requestedMode = searchParams.get('mode');
       ? Number(amountToReceive) / quote.rate
       : 0;
 
-  function selectMode(nextMode: ExchangeMode) {
-    setMode(nextMode);
-    setMessage('');
-    setStatus('idle');
-
-    if (nextMode === 'buy') {
-      setFromCurrency('ARS');
-      setToCurrency('USD');
-    }
-
-    if (nextMode === 'sell') {
-      setFromCurrency('USD');
-      setToCurrency('ARS');
-    }
-  }
-
   function reverseCurrencies() {
     setFromCurrency(toCurrency);
     setToCurrency(fromCurrency);
@@ -361,12 +335,16 @@ const requestedMode = searchParams.get('mode');
   }
 
   async function handleExchange() {
-    if (
-      fromCurrency === toCurrency ||
-      Number(amountToReceive) <= 0
-    ) {
+    if (fromCurrency === toCurrency) {
       setStatus('error');
-      setMessage('Enter a valid amount and two different currencies.');
+      setMessage('Pick two different currencies.');
+      return;
+    }
+
+    const amountError = getAmountValidationError(amountToReceive);
+    if (amountError) {
+      setStatus('error');
+      setMessage(amountError);
       return;
     }
 
@@ -392,56 +370,20 @@ const requestedMode = searchParams.get('mode');
     }
   }
 
-  const actionLabel =
-    mode === 'buy'
-      ? `Buy ${toCurrency}`
-      : mode === 'sell'
-        ? `Sell ${fromCurrency}`
-        : `Swap to ${toCurrency}`;
+  const actionLabel = `Swap to ${toCurrency}`;
 
   return (
     <>
       <PageTitle
         eyebrow="EXCHANGE"
-        title={
-          mode === 'buy'
-            ? 'Buy currency'
-            : mode === 'sell'
-              ? 'Sell currency'
-              : 'Swap currencies'
-        }
+        title="Swap currencies"
         description="Exchange your money using current market rates."
       />
-
-      <div className="exchange-mode-tabs">
-        <button
-          type="button"
-          className={mode === 'buy' ? 'active' : ''}
-          onClick={() => selectMode('buy')}
-        >
-          Buy
-        </button>
-
-        <button
-          type="button"
-          className={mode === 'sell' ? 'active' : ''}
-          onClick={() => selectMode('sell')}
-        >
-          Sell
-        </button>
-
-        <button
-          type="button"
-          className={mode === 'swap' ? 'active' : ''}
-          onClick={() => selectMode('swap')}
-        >
-          Swap
-        </button>
-      </div>
 
       <div className="exchange-layout">
         <section className="workspace-panel exchange-box">
           <p className="small-label">YOU PAY</p>
+          <p className="exchange-input-hint">Calculated automatically from the amount you receive</p>
 
           <div className="exchange-input">
             <input
@@ -451,7 +393,8 @@ const requestedMode = searchParams.get('mode');
                   : ''
               }
               readOnly
-              aria-label="Amount to pay"
+              aria-label="Amount to pay (calculated automatically, not editable)"
+              title="Calculated automatically from the amount you receive"
             />
 
             <select
@@ -590,10 +533,47 @@ const requestedMode = searchParams.get('mode');
 
 function CashbackContent() {
   const [cashback, setCashback] = useState<CashbackSummary | null>(null);
+  const [purchaseCurrency, setPurchaseCurrency] = useState('USD');
+  const [purchaseAmount, setPurchaseAmount] = useState('');
+  const [purchaseStatus, setPurchaseStatus] = useState<
+    'idle' | 'loading' | 'error' | 'success'
+  >('idle');
+  const [purchaseMessage, setPurchaseMessage] = useState('');
+
+  function loadCashback() {
+    walletsApi.getCashback().then(setCashback);
+  }
 
   useEffect(() => {
-    walletsApi.getCashback().then(setCashback);
+    loadCashback();
   }, []);
+
+  async function handlePurchase(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const amountError = getAmountValidationError(purchaseAmount);
+    if (amountError) {
+      setPurchaseStatus('error');
+      setPurchaseMessage(amountError);
+      return;
+    }
+
+    setPurchaseStatus('loading');
+    setPurchaseMessage('');
+
+    try {
+      const result = await exchangeApi.buy(purchaseCurrency, purchaseAmount);
+      setPurchaseStatus('success');
+      setPurchaseMessage(
+        `Purchase completed — you earned ${result.cashback.amount} ${purchaseCurrency} in cashback (${result.cashback.points} points).`,
+      );
+      setPurchaseAmount('');
+      loadCashback();
+    } catch (err) {
+      setPurchaseStatus('error');
+      setPurchaseMessage(err instanceof Error ? err.message : 'Purchase failed.');
+    }
+  }
 
   if (!cashback) return null;
 
@@ -624,6 +604,61 @@ function CashbackContent() {
         <small>
           ${cashback.monthlyEarned.toFixed(2)} of ${cashback.monthlyGoal.toFixed(2)} monthly goal
         </small>
+      </section>
+
+      <section className="workspace-panel cashback-purchase-simulator">
+        <p className="small-label panel-title-caps">Simulate a purchase</p>
+        <p className="muted-text">
+          Spend from one of your balances (like buying a game) and earn cashback on it, up to the
+          per-purchase, weekly and monthly limits.
+        </p>
+
+        <form onSubmit={handlePurchase} className="cashback-purchase-form">
+          <label>
+            <span>Currency</span>
+            <select
+              value={purchaseCurrency}
+              onChange={(event) => setPurchaseCurrency(event.target.value)}
+            >
+              {EXCHANGE_CURRENCIES.map((code) => (
+                <option key={code}>{code}</option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            <span>Amount spent</span>
+            <input
+              type="number"
+              min="0.01"
+              step="0.01"
+              inputMode="decimal"
+              placeholder="0.00"
+              value={purchaseAmount}
+              onChange={(event) => setPurchaseAmount(event.target.value)}
+            />
+          </label>
+
+          <button
+            type="submit"
+            className="workspace-main-button"
+            disabled={purchaseStatus === 'loading'}
+          >
+            {purchaseStatus === 'loading' ? 'Processing...' : 'Simulate purchase'}
+          </button>
+        </form>
+
+        {purchaseMessage && (
+          <p
+            className={
+              purchaseStatus === 'error'
+                ? 'negative-text exchange-message'
+                : 'positive-text exchange-message'
+            }
+          >
+            {purchaseMessage}
+          </p>
+        )}
       </section>
     </>
   );
@@ -711,38 +746,113 @@ function RewardsContent() {
   );
 }
 
-function DropsContent() {
-  return (
-    <>
-      <PageTitle
-        eyebrow="DROPS"
-        title="Exclusive drops"
-        description="Limited rewards and benefits for Vida Extra users."
-      />
-
-      <div className="drops-grid">
-        <article className="drop-card featured-drop">
-          <span className="drop-tag">FEATURED</span>
-          <h2>Gaming Week</h2>
-          <p>Earn 2× cashback on selected gaming purchases.</p>
-          <strong>Ends in 2 days</strong>
-          <button>View drop</button>
-        </article>
-      </div>
-    </>
-  );
-}
-
 const INCOME_TYPES = ['DEPOSIT', 'REWARD_CASHBACK'];
 const EXPENSE_TYPES = ['WITHDRAWAL', 'BUY'];
 const EXCHANGE_TYPES = ['SWAP'];
+
+function TransferForm({ onTransferred }: { onTransferred: () => void }) {
+  const [recipientEmail, setRecipientEmail] = useState('');
+  const [currency, setCurrency] = useState('USD');
+  const [amount, setAmount] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>('idle');
+  const [message, setMessage] = useState('');
+
+  async function handleTransfer(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!recipientEmail.trim()) {
+      setStatus('error');
+      setMessage('Enter the recipient email.');
+      return;
+    }
+
+    const amountError = getAmountValidationError(amount);
+    if (amountError) {
+      setStatus('error');
+      setMessage(amountError);
+      return;
+    }
+
+    setStatus('loading');
+    setMessage('');
+
+    try {
+      const result = await walletsApi.transfer(recipientEmail.trim(), currency, amount);
+      setStatus('success');
+      setMessage(`Sent ${result.transaction.amountSent} ${currency} to ${recipientEmail}.`);
+      setAmount('');
+      setRecipientEmail('');
+      onTransferred();
+    } catch (err) {
+      setStatus('error');
+      setMessage(err instanceof Error ? err.message : 'Transfer failed.');
+    }
+  }
+
+  return (
+    <section className="workspace-panel transfer-form-panel">
+      <p className="small-label panel-title-caps">Transfer to another user</p>
+      <p className="muted-text">
+        Send money from one of your balances to another Vida Extra user by email.
+      </p>
+
+      <form onSubmit={handleTransfer} className="transfer-form">
+        <label className="transfer-form-email">
+          <span>Recipient email</span>
+          <input
+            type="email"
+            placeholder="friend@example.com"
+            value={recipientEmail}
+            onChange={(event) => setRecipientEmail(event.target.value)}
+          />
+        </label>
+
+        <label>
+          <span>Currency</span>
+          <select value={currency} onChange={(event) => setCurrency(event.target.value)}>
+            {EXCHANGE_CURRENCIES.map((code) => (
+              <option key={code}>{code}</option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          <span>Amount</span>
+          <input
+            type="number"
+            min="0.01"
+            step="0.01"
+            inputMode="decimal"
+            placeholder="0.00"
+            value={amount}
+            onChange={(event) => setAmount(event.target.value)}
+          />
+        </label>
+
+        <button type="submit" className="workspace-main-button" disabled={status === 'loading'}>
+          {status === 'loading' ? 'Sending...' : 'Send transfer'}
+        </button>
+      </form>
+
+      {message && (
+        <p className={status === 'error' ? 'negative-text exchange-message' : 'positive-text exchange-message'}>
+          {message}
+        </p>
+      )}
+    </section>
+  );
+}
 
 function TransactionsContent() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filter, setFilter] = useState<'All' | 'Income' | 'Expenses' | 'Exchange'>('All');
 
-  useEffect(() => {
+  function loadTransactions() {
     transactionsApi.list({ limit: 50 }).then((res) => setTransactions(res.transactions));
+  }
+
+  useEffect(() => {
+    loadTransactions();
   }, []);
 
   const filtered = transactions.filter((tx) => {
@@ -759,6 +869,8 @@ function TransactionsContent() {
         title="Transactions"
         description="Review your latest account activity."
       />
+
+      <TransferForm onTransferred={loadTransactions} />
 
       <div className="transaction-toolbar">
         {(['All', 'Income', 'Expenses', 'Exchange'] as const).map((tab) => (

@@ -31,7 +31,7 @@ export function BalanceCard({
   return (
     <article className="balance-card dashboard-card">
       <div className="balance-header">
-        <div>
+        <div className="balance-info">
           <p className="small-label">TOTAL BALANCE</p>
 
           <h2>

@@ -7,7 +7,6 @@ const menuItems = [
   { icon: '⇄', label: 'Exchange', path: '/exchange' },
   { icon: '%', label: 'Cashback', path: '/cashback' },
   { icon: '☆', label: 'Rewards', path: '/rewards' },
-  { icon: '◈', label: 'Drops', path: '/drops' },
   { icon: '◷', label: 'Transactions', path: '/transactions' },
 ];
 

@@ -19,9 +19,9 @@ import './dashboard-buy-button.css';
 const quickActions = [
   {
     icon: <AppIcon name="buy" />,
-    title: 'Buy currency',
-    subtitle: 'Exchange funds',
-    path: '/exchange?mode=buy',
+    title: 'Deposit/Withdraw',
+    subtitle: 'Add money',
+    path: '/wallet',
   },
   {
     icon: <AppIcon name="cashback" />,
@@ -33,7 +33,7 @@ const quickActions = [
     icon: '⇄',
     title: 'Swap',
     subtitle: 'Move between wallets',
-    path: '/exchange?mode=swap',
+    path: '/exchange',
   },
   {
     icon: <AppIcon name="deposit" />,
@@ -116,7 +116,7 @@ export function DashboardPage() {
   <button
     type="button"
     className="buy-currency-button"
-    onClick={() => navigate('/exchange?mode=buy')}
+    onClick={() => navigate('/wallet')}
   >
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path
@@ -127,7 +127,7 @@ export function DashboardPage() {
         strokeLinejoin="round"
       />
     </svg>
-    Buy currency
+    Deposit/Withdraw
   </button>
 </section>
 <ExchangeRatesWidget />
@@ -195,7 +195,7 @@ export function DashboardPage() {
       strokeLinejoin="round"
     />
   </svg>
-  Buy currency
+  Swap
 </button>
       </div>
 

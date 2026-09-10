@@ -86,14 +86,6 @@ export function AppRouter() {
             }
           />
           <Route
-            path="/drops"
-            element={
-              <PrivatePage>
-                <WorkspacePage type="drops" />
-              </PrivatePage>
-            }
-          />
-          <Route
             path="/transactions"
             element={
               <PrivatePage>

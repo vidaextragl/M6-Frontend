@@ -230,15 +230,27 @@ Las respuestas se muestran como texto seguro y la interfaz incluye estados de es
 > Las respuestas del asistente son orientativas. Los valores monetarios y tipos de cambio pueden variar.
 ## 🧪 Testing
 ### Frontend
-Actualmente existe una prueba unitaria para las utilidades del chatbot. Verifica:
-* Normalización de consultas.
-* Bloqueo de mensajes vacíos.
-* Longitud máxima aceptada.
-* Validación de respuestas del backend.
-* Rechazo de respuestas vacías o inválidas.
+El frontend utiliza **Vitest** junto con **React Testing Library** para las pruebas unitarias y de componentes. La suite cuenta con 78 tests que cubren tanto lógica financiera crítica como componentes clave de la aplicación:
+* Validación de contraseñas.
+* Formateo de transacciones.
+* Cliente HTTP (`apiFetch`).
+* Autenticación (`AuthContext`).
+* Rutas protegidas (`ProtectedRoute` / `GuestRoute`).
+* Configuración de cuenta (`SettingsPage`).
+* Wallet (depósitos, retiros y validación de montos).
+* Exchange (tipos de cambio y operaciones de swap).
+
 Ejecutar con:
 ```bash
-node --test tests/unit/components/chatbot.test.ts
+npm run test
+```
+Para ejecutar los tests en modo watch:
+```bash
+npm run test:watch
+```
+Para usar la interfaz visual de Vitest:
+```bash
+npm run test:ui
 ```
 ### Backend
 El backend utiliza Vitest y Supertest. La estructura de pruebas incluye casos unitarios y de integración para módulos como:

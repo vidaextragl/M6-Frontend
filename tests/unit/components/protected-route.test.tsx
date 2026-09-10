@@ -61,6 +61,23 @@ describe('ProtectedRoute', () => {
     renderWithRoute(ProtectedRoute, '/protegida')
     expect(screen.getByText('Contenido protegido')).toBeInTheDocument()
   })
+
+  it('no muestra contenido ni redirige mientras isLoading es true', () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      token: null,
+      isLoading: true,
+      isAuthenticated: false,
+      login: vi.fn(),
+      register: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    })
+
+    renderWithRoute(ProtectedRoute, '/protegida')
+    expect(screen.queryByText('Contenido protegido')).not.toBeInTheDocument()
+    expect(screen.queryByText('Pantalla de login')).not.toBeInTheDocument()
+  })
 })
 
 describe('GuestRoute', () => {
@@ -94,5 +111,22 @@ describe('GuestRoute', () => {
 
     renderWithRoute(GuestRoute, '/protegida')
     expect(screen.getByText('Contenido protegido')).toBeInTheDocument()
+  })
+
+  it('no muestra contenido ni redirige mientras isLoading es true', () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      token: null,
+      isLoading: true,
+      isAuthenticated: false,
+      login: vi.fn(),
+      register: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    })
+
+    renderWithRoute(GuestRoute, '/protegida')
+    expect(screen.queryByText('Contenido protegido')).not.toBeInTheDocument()
+    expect(screen.queryByText('Pantalla de dashboard')).not.toBeInTheDocument()
   })
 })

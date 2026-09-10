@@ -33,4 +33,24 @@ describe('isStrongPassword', () => {
   it('rechaza una contraseña que solo tiene números', () => {
     expect(isStrongPassword('12345678')).toBe(false)
   })
+
+  it('acepta una contraseña con espacios que igual cumple los requisitos', () => {
+    expect(isStrongPassword('Clave Segura 1!')).toBe(true)
+  })
+
+  it('rechaza una contraseña compuesta solo por espacios', () => {
+    expect(isStrongPassword('        ')).toBe(false)
+  })
+
+  it('acepta una contraseña muy larga que cumple los requisitos', () => {
+    expect(isStrongPassword(`Ab1!${'a'.repeat(300)}`)).toBe(true)
+  })
+
+  it('acepta una contraseña con emojis siempre que cumpla los requisitos', () => {
+    expect(isStrongPassword('Abcdefg1!😀🎉')).toBe(true)
+  })
+
+  it('rechaza una contraseña formada solo por emojis', () => {
+    expect(isStrongPassword('😀🎉🔥🚀')).toBe(false)
+  })
 })

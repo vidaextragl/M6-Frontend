@@ -11,7 +11,6 @@ const pageNames: Record<string, string> = {
   '/exchange': 'Exchange',
   '/cashback': 'Cashback',
   '/rewards': 'Rewards',
-  '/drops': 'Drops',
   '/transactions': 'Transactions',
   '/notifications': 'Notifications',
   '/settings': 'Settings',

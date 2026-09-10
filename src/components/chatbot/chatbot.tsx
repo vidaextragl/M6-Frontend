@@ -16,7 +16,6 @@ const PROTECTED_PATHS = new Set([
   '/exchange',
   '/cashback',
   '/rewards',
-  '/drops',
   '/transactions',
   '/notifications',
   '/settings',

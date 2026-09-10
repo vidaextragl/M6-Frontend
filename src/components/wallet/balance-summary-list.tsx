@@ -31,8 +31,6 @@ export function BalanceSummaryList({ currencies }: Props) {
                 <strong>{currency.code}</strong>
                 <p>{currencyNames[currency.code]}</p>
               </div>
-
-              <button type="button">•••</button>
             </div>
 
             <h3>

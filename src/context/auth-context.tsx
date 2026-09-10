@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { authApi } from '../api/auth.api';
+import { usersApi } from '../api/users.api';
 import { AuthContext } from './auth-context-definition';
 import type { LoginCredentials, RegisterCredentials, User } from '../types/user.types';
 
@@ -58,6 +59,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setSession({ user: null, token: null });
   }
 
+  async function refreshUser(): Promise<void> {
+    if (!token) return;
+
+    const response = await usersApi.getMe();
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.user));
+    setSession((current) => ({ ...current, user: response.user }));
+  }
+
   const value = {
     user,
     token,
@@ -66,7 +75,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     login,
     register,
     logout,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-} 
+}

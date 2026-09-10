@@ -138,22 +138,6 @@ function RewardsSkeleton() {
   );
 }
 
-function DropsSkeleton() {
-  return (
-    <div className="route-three-cards">
-      {Array.from({ length: 3 }).map((_, index) => (
-        <div className="route-skeleton-surface route-drop-card" key={index}>
-          <SkeletonBlock className="route-drop-tag" />
-          <SkeletonBlock className="route-drop-title" />
-          <SkeletonBlock className="route-drop-text" />
-          <SkeletonBlock className="route-drop-text short" />
-          <SkeletonBlock className="route-drop-button" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function TransactionsSkeleton() {
   return (
     <>
@@ -265,7 +249,6 @@ export function RouteSkeleton({ pathname }: RouteSkeletonProps) {
       {routeName === 'exchange' && <ExchangeSkeleton />}
       {routeName === 'cashback' && <CashbackSkeleton />}
       {routeName === 'rewards' && <RewardsSkeleton />}
-      {routeName === 'drops' && <DropsSkeleton />}
       {routeName === 'transactions' && <TransactionsSkeleton />}
       {routeName === 'notifications' && <NotificationsSkeleton />}
       {routeName === 'settings' && <SettingsSkeleton />}

@@ -1,3 +1,4 @@
+import { AppIcon } from '../../ui/app-icon';
 import { useMemo, useState, type FormEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/use-auth';
@@ -10,7 +11,6 @@ const pageNames: Record<string, string> = {
   '/exchange': 'Exchange',
   '/cashback': 'Cashback',
   '/rewards': 'Rewards',
-  '/drops': 'Drops',
   '/transactions': 'Transactions',
   '/notifications': 'Notifications',
   '/settings': 'Settings',
@@ -110,7 +110,7 @@ export function Navbar({ onOpenMenu }: NavbarProps) {
           role="search"
           onSubmit={submitSearch}
         >
-          <span aria-hidden="true">⌕</span>
+          <span aria-hidden="true"><AppIcon name="search" /></span>
 
           <input
             type="search"
@@ -129,7 +129,7 @@ export function Navbar({ onOpenMenu }: NavbarProps) {
           aria-label="Abrir buscador"
           onClick={() => setMobileSearchOpen((isOpen) => !isOpen)}
         >
-          ⌕
+          <AppIcon name="search" />
         </button>
 
         <button
@@ -143,7 +143,7 @@ export function Navbar({ onOpenMenu }: NavbarProps) {
           title={theme === 'light' ? 'Modo claro' : 'Modo oscuro'}
           onClick={toggleTheme}
         >
-          {theme === 'light' ? '☀️' : '🌙'}
+          <AppIcon name={theme === 'light' ? 'moon' : 'sun'} />
         </button>
 
         <button
@@ -152,17 +152,22 @@ export function Navbar({ onOpenMenu }: NavbarProps) {
   aria-label="Notifications"
   onClick={() => navigate('/notifications')}
 >
-  🔔
+  <AppIcon name="bell" />
 </button>
+<button
+  type="button"
+  className="navbar-profile"
+  aria-label="Abrir perfil"
+  title="Ver perfil"
+  onClick={() => navigate('/settings')}
+>
+  <div className="user-avatar">{initials}</div>
 
-        <div className="navbar-profile">
-          <div className="user-avatar">{initials}</div>
-
-          <div className="navbar-user-name">
-            <strong>{user?.name}</strong>
-            <span>Personal account</span>
-          </div>
-        </div>
+  <div className="navbar-user-name">
+    <strong>{user?.name}</strong>
+    <span>Personal account</span>
+  </div>
+</button>
 
         <button
           type="button"

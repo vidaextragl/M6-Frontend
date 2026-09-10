@@ -17,6 +17,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   WALLET_NOT_FOUND: 'No se encontró tu wallet',
   USER_NOT_FOUND: 'No se encontró el usuario',
   REWARD_NOT_FOUND: 'No se encontró esa recompensa',
+  RECIPIENT_NOT_FOUND: 'No encontramos ningún usuario registrado con ese email',
+  CANNOT_TRANSFER_TO_SELF: 'No podés transferirte plata a vos mismo',
   CONFLICT: 'Ya existe un registro con esos datos',
   UNAUTHORIZED: 'No tenés permiso para hacer esto',
   INSUFFICIENT_FUNDS: 'No tenés fondos suficientes',
